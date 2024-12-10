@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 from Attacks.ddos import simulate_ddos
 from Utils.utils import validate_url
+from Attacks.sql_injection import simulate_sql_injection
+
 
 #DDOS window
 def open_ddos_window(root):
@@ -47,6 +49,32 @@ def open_ddos_window(root):
 
 # Add here other windows for other attacks
 
+def open_sql_injection_window(root):
+    sql_window = tk.Toplevel(root)
+    sql_window.title("SQL Injection Simulator")
+    
+    tk.Label(sql_window, text="URL:").grid(row=0, column=0, sticky="e")
+    url_entry = tk.Entry(sql_window, width=30)
+    url_entry.grid(row=0, column=1)
+
+    tk.Label(sql_window, text="Payload SQL:").grid(row=1, column=0, sticky="e")
+    payload_entry = tk.Entry(sql_window, width=30)
+    payload_entry.grid(row=1, column=1)
+
+    def start_sql_injection():
+        url = url_entry.get()
+        payload = payload_entry.get()
+
+        if not validate_url(url):
+            messagebox.showerror("Erreur", "URL invalide.")
+            return
+        
+        simulate_sql_injection(url, payload)
+
+    start_button = tk.Button(sql_window, text="Lancer l'attaque", command=start_sql_injection, bg="red", fg="white")
+    start_button.grid(row=2, columnspan=2, pady=10)
+
+
 # Home page
 def show_home_menu(root):
     main_frame = tk.Frame(root, padx=20, pady=20)
@@ -60,3 +88,4 @@ def show_home_menu(root):
     # Add here button for other attacks windows
     tk.Button(main_frame, text="Other attack", state=tk.DISABLED, width=20).pack(pady=5)
     tk.Button(main_frame, text="Quitter", command=root.quit, width=20, bg="red", fg="white").pack(pady=10)
+    tk.Button(main_frame, text="SQL Injection", command=lambda: open_sql_injection_window(root), bg="blue", fg="white").pack(pady=5)
