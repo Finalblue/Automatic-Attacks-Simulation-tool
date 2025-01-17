@@ -84,6 +84,13 @@ class AttackManager:
             button_column=0
         )
 
+        self.register_attack(
+            name="APIScrapper",
+            function="run_spider",
+            order=1,
+            description="Map application endpoints"
+        )
+
     def register_attack(self, name: str, function: str, order: int, description: str,
                        requires: List[str] = None, button_style: str = 'default',
                        button_row: int = 0, button_column: int = 0):
