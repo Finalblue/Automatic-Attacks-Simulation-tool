@@ -1,94 +1,193 @@
-import os
-import sys
+# gui.py
 import tkinter as tk
-from tkinter import messagebox
+import sys
+import os
+import json
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tkinter import ttk, messagebox, filedialog
+from AttackManager import AttackManager
+from Alexis.JuiceShopVulnerabilities import JuiceShopVulnerabilities 
+from Alexis.XSSAttacks import XSSAttacks
+from Alexis.ForgedJWT import ForgedJWT
+from Alexis.XXE_Attacks import XXEAttacks
+from Alexis.Spider import Spider
+from Alexis.JuiceShopCouponExploit import JuiceShopCouponExploit
+import logging
 
-# Ajouter le dossier du projet au PYTHONPATH
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+class AutoPentestGUI:
+    def __init__(self, root):
+        logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(message)s')
+        self.root = root
+        self.root.title("Automated Pentest Tool")
+        self.logger = logging.getLogger(__name__)
+        self.attack_manager = AttackManager()
+        self.completed_attacks = []
+        self.setup_gui()
 
-from Attacks.ddos import simulate_ddos
-from Attacks.couponattack import run_generic_coupon_attack
-from Utils.utils import validate_url
+    def setup_gui(self):
+        self.setup_styles()
+        self.create_main_frame()
+        self.create_target_config()
+        self.create_attack_buttons()
+        self.create_progress_bar()
+        self.create_log_area()
 
-# Fenêtre pour l'attaque DDoS
-def open_ddos_window(root):
-    ddos_window = tk.Toplevel(root)
-    ddos_window.title("DDoS Simulator")
-    
-    tk.Label(ddos_window, text="URL:").grid(row=0, column=0, sticky="e")
-    url_entry = tk.Entry(ddos_window, width=30)
-    url_entry.grid(row=0, column=1)
+    def setup_styles(self):
+        self.style = ttk.Style()
 
-    tk.Label(ddos_window, text="Number of Threads:").grid(row=1, column=0, sticky="e")
-    threads_entry = tk.Entry(ddos_window, width=10)
-    threads_entry.grid(row=1, column=1)
+    def create_main_frame(self):
+        self.main_frame = ttk.Frame(self.root, padding=10)
+        self.main_frame.grid(sticky='nsew')
 
-    tk.Label(ddos_window, text="Requests per Thread:").grid(row=2, column=0, sticky="e")
-    requests_entry = tk.Entry(ddos_window, width=10)
-    requests_entry.grid(row=2, column=1)
+    def create_target_config(self):
+        config_frame = ttk.LabelFrame(self.main_frame, text="Target Configuration")
+        config_frame.grid(row=0, column=0, sticky='ew', padx=5, pady=5)
 
-    def start_ddos():
-        url = url_entry.get()
+        self.url_var = tk.StringVar(value="http://45.76.47.218:3000")
+        ttk.Label(config_frame, text="Target URL:").grid(row=0, column=0)
+        ttk.Entry(config_frame, textvariable=self.url_var, width=50).grid(row=0, column=1)
+
+    def create_attack_buttons(self):
+        attacks_frame = ttk.LabelFrame(self.main_frame, text="Available Attacks")
+        attacks_frame.grid(row=1, column=0, sticky='ew', padx=5, pady=5)
+
+        for btn_config in self.attack_manager.get_button_config():
+            btn = ttk.Button(
+                attacks_frame,
+                text=f"{btn_config['name']}\n{btn_config['description']}",
+                command=lambda n=btn_config["name"]: self.run_single_attack(n)
+            )
+            btn.grid(row=btn_config["row"], column=btn_config["column"], padx=5, pady=5)
+
+        ttk.Button(
+            attacks_frame,
+            text="Run All Attacks",
+            command=self.run_all_attacks
+        ).grid(row=99, column=0, columnspan=3, pady=10)
+
+    def create_progress_bar(self):
+        self.progress_var = tk.DoubleVar()
+        ttk.Progressbar(
+            self.main_frame,
+            variable=self.progress_var,
+            maximum=100
+        ).grid(row=2, column=0, sticky='ew', padx=5, pady=5)
+
+    def create_log_area(self):
+        self.log_text = tk.Text(self.main_frame, height=10, width=70)
+        self.log_text.grid(row=3, column=0, sticky='nsew', padx=5, pady=5)
+        
+        scrollbar = ttk.Scrollbar(self.main_frame, command=self.log_text.yview)
+        scrollbar.grid(row=3, column=1, sticky='ns')
+        self.log_text['yscrollcommand'] = scrollbar.set
+
+    def log(self, message):
+        self.log_text.insert('end', f"{message}\n")
+        self.log_text.see('end')
+        self.root.update()
+        self.logger.debug(message)
+
+    def run_single_attack(self, attack_name):
+        if not self.attack_manager.can_run_attack(attack_name, self.completed_attacks):
+            self.log(f"[!] Cannot run {attack_name} - prerequisites not met")
+            return
+
+        self.log(f"[+] Starting {attack_name} attack...")
+        attack = self.attack_manager.attacks[attack_name]
+
         try:
-            num_threads = int(threads_entry.get())
-            requests_per_thread = int(requests_entry.get())
+            result = getattr(self, attack.function)()
+            if result and result.get("status") == "success":
+                self.completed_attacks.append(attack_name)  # Ajoutez l'attaque terminée ici
+                self.log(f"[+] {attack_name} result: success")
+            else:
+                self.log(f"[-] {attack_name} result: failed")
+        except Exception as e:
+            self.log(f"[!] Error in {attack_name}: {str(e)}")
 
-            if not validate_url(url):
-                messagebox.showerror("Error", "Invalid URL format.")
-                return
 
-            simulate_ddos(url, num_threads, requests_per_thread)
-            messagebox.showinfo("Success", "DDoS attack simulation finished.")
-        except ValueError:
-            messagebox.showerror("Error", "Enter valid numeric values.")
+    def run_all_attacks(self):
+        self.completed_attacks = []
+        self.log("[+] Starting full attack sequence...")
+        
+        results = {}
+        attack_sequence = self.attack_manager.get_attack_sequence()
+        total_attacks = len(attack_sequence)
+        
+        for i, attack in enumerate(attack_sequence):
+            self.progress_var.set((i / total_attacks) * 100)
+            result = self.run_single_attack(attack.name)
+            if result:
+                results[attack.name] = result
+            
+        self.progress_var.set(100)
+        self.log("[+] Attack sequence completed")
+        self.save_results(results)
 
-    tk.Button(ddos_window, text="Launch Attack", command=start_ddos, bg="red", fg="white").grid(row=3, columnspan=2, pady=10)
+    def run_spider(self):
+        spider = Spider(self.url_var.get())
+        results = spider.crawl()
+        return {"status": "success", "endpoints": results}
 
-# Fenêtre pour l'attaque de Coupon Generic
-def open_generic_coupon_window(root):
-    coupon_window = tk.Toplevel(root)
-    coupon_window.title("Generic Coupon Attack")
+    def run_jwt_attack(self):
+        jwt = ForgedJWT(self.url_var.get())
+        return jwt.run_attack()
 
-    tk.Label(coupon_window, text="Target URL:").grid(row=0, column=0, sticky="e")
-    url_entry = tk.Entry(coupon_window, width=30)
-    url_entry.grid(row=0, column=1)
+    def run_sql_injection(self):
+        juice = JuiceShopVulnerabilities(self.url_var.get())
+        return juice.test_sql_injection()
 
-    tk.Label(coupon_window, text="Discount Percentage (e.g., 80):").grid(row=1, column=0, sticky="e")
-    discount_entry = tk.Entry(coupon_window, width=10)
-    discount_entry.grid(row=1, column=1)
+    def run_captcha_bypass(self):
+        juice = JuiceShopVulnerabilities(self.url_var.get())
+        result = juice.test_captcha_bypass()
+        if result.get("status") == "success":
+            self.log("[+] Successfully bypassed CAPTCHA")
+        return result
 
-    def start_coupon_attack():
-        url = url_entry.get()
+    def run_coupon_exploit(self):
         try:
-            discount = int(discount_entry.get())
-            if not validate_url(url):
-                messagebox.showerror("Error", "Invalid URL format.")
-                return
+            exploit = JuiceShopCouponExploit(self.url_var.get())
+            success = exploit.run_exploit()
+            if success:
+                self.log("[+] COUPON result: success")
+                return {"status": "success"}
+            else:
+                self.log("[-] COUPON result: failed")
+                return {"status": "failed"}
+        except Exception as e:
+            self.log(f"[!] COUPON error: {str(e)}")
+            return {"status": "failed", "error": str(e)}
 
-            run_generic_coupon_attack(url, discount)
-            messagebox.showinfo("Success", "Coupon attack simulation finished.")
-        except ValueError:
-            messagebox.showerror("Error", "Enter a valid numeric discount value.")
 
-    tk.Button(coupon_window, text="Launch Attack", command=start_coupon_attack, bg="green", fg="white").grid(row=2, columnspan=2, pady=10)
+    def run_xss_attacks(self):
+        xss = XSSAttacks(self.url_var.get())
+        results = xss.run_all_xss_attacks()
+        return {"status": "success" if any(r["status"] == "success" for r in results.values()) else "failed"}
 
-# Accueil
-def show_home_menu(root):
-    main_frame = tk.Frame(root, padx=20, pady=20)
-    main_frame.pack(fill="both", expand=True)
+    def run_xxe_attack(self):
+        xxe = XXEAttacks(self.url_var.get())
+        try:
+            results = xxe.run_all_xxe_attacks()
+            return {"status": "success" if any(r["status"] == "success" for r in results.values()) else "failed"}
+        except Exception as e:
+            self.log(f"[!] XXE attack error: {str(e)}")
+            return {"status": "failed", "error": str(e)}
 
-    for widget in main_frame.winfo_children():
-        widget.destroy()
+    def save_results(self, results):
+        try:
+            file_path = filedialog.asksaveasfilename(
+                title="Save Attack Results",
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            )
+            if file_path:
+                with open(file_path, 'w') as f:
+                    json.dump(results, f, indent=4)
+                self.log(f"[+] Results saved to {file_path}")
+        except Exception as e:
+            self.log(f"[!] Error saving results: {str(e)}")
 
-    tk.Label(main_frame, text="Welcome to Automatic Attacks Simulator!", font=("Arial", 16)).pack(pady=10)
-
-    tk.Button(main_frame, text="DDoS Attack", command=lambda: open_ddos_window(root), width=20, bg="blue", fg="white").pack(pady=5)
-    tk.Button(main_frame, text="Generic Coupon Attack", command=lambda: open_generic_coupon_window(root), width=20, bg="green", fg="white").pack(pady=5)
-    tk.Button(main_frame, text="Quit", command=root.quit, width=20, bg="red", fg="white").pack(pady=10)
-
-# Lancer l'application
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("Automatic Attacks Simulator")
-    show_home_menu(root)
+    app = AutoPentestGUI(root)
     root.mainloop()
