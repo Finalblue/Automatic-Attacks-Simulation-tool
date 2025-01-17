@@ -1,0 +1,16 @@
+{
+    "juice_shop": {
+        "base_url": "http://localhost:3000",
+        "endpoints": {
+            "login": "/rest/user/login",
+            "coupon_validation": "/api/Feedbacks"
+        }
+    },
+    "other_sites": {
+        "base_url": "http://localhost:3000",
+        "endpoints": {
+            "login": "/rest/user/login",
+            "coupon_validation": "/api/Feedbacks"
+        }
+    }
+}
