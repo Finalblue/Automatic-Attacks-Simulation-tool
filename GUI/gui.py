@@ -8,7 +8,7 @@ from tkinter import ttk, messagebox, filedialog
 from AttackManager import AttackManager
 from Attacks.Alexis.JuiceShopVulnerabilities import JuiceShopVulnerabilities 
 from Attacks.Alexis.XSSAttacks import XSSAttacks
-from Attacks.Alexis.ForgedJWT import ForgedJWT
+from ForgedUnsignedJWT import ForgedJWT
 from Attacks.Alexis.XXE_Attacks import XXEAttacks
 from Attacks.Alexis.Spider import Spider
 from Attacks.Alexis.JuiceShopCouponExploit import JuiceShopCouponExploit
