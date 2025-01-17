@@ -4,6 +4,7 @@
         "Pentest"
     ],
     "python.analysis.extraPaths": [
-        "./Attacks"
+        "./Attacks",
+        "./Attacks/Alexis"
     ]
 }
