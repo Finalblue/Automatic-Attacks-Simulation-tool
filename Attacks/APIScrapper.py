@@ -1,16 +1,29 @@
 import requests
 import re
+import os
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
+try:
+    os.environ['HTTP_PROXY'] = ''
+    os.environ['HTTPS_PROXY'] = ''
+    os.environ['http_proxy'] = ''
+    os.environ['https_proxy'] = ''
+except Exception as e:
+    print(f"Warning: Could not set proxy environment variables: {e}")
+
 class APIScanner:
+        
     def __init__(self):
         self.api_endpoints = []  # Liste pour stocker les endpoints d'API trouvés
+        self.session = requests.Session()
+        self.session.trust_env = False  # Ignore environment proxies
+        self.session.proxies = {'http': None, 'https': None}
     
     def find_js_endpoints(self, url):
         print("Scraping url ...")
         try:
-            response = requests.get(url, timeout=5)
+            response = self.session.get(url, timeout=5, verify=False)
             response.raise_for_status() 
             soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -25,7 +38,7 @@ class APIScanner:
                 full_url = urljoin(url, js_file)  # Créer l'URL complète du fichier JS
                 try:
                     # Get JS file content
-                    js_content = requests.get(full_url, timeout=5).text
+                    js_content = self.session.get(full_url, timeout=5).text
                     # Search for /rest API endpoints
                     found_endpoints = re.findall(r'/rest/[a-zA-Z0-9/._-]+', js_content)
                     endpoints.update(found_endpoints)  # Add enpoints to the list
@@ -46,15 +59,15 @@ class APIScanner:
 
 # Exemple
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
 
-#     scanner = APIScanner()
+    scanner = APIScanner()
 
-#     target_url = "http://45.76.47.218:3000"  # Remplacer par l'URL de votre instance OWASP Juice Shop
+    target_url = "http://45.76.47.218:3000"  # Remplacer par l'URL de votre instance OWASP Juice Shop
 
-#     scanner.find_js_endpoints(target_url)
+    scanner.find_js_endpoints(target_url)
 
-#     api_endpoints = scanner.get_api_endpoints()
-#     for endpoint in api_endpoints:
-#         print(endpoint)
+    api_endpoints = scanner.get_api_endpoints()
+    for endpoint in api_endpoints:
+        print(endpoint)
 
