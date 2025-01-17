@@ -6,12 +6,12 @@ import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tkinter import ttk, messagebox, filedialog
 from AttackManager import AttackManager
-from Alexis.JuiceShopVulnerabilities import JuiceShopVulnerabilities 
-from Alexis.XSSAttacks import XSSAttacks
-from Alexis.ForgedJWT import ForgedJWT
-from Alexis.XXE_Attacks import XXEAttacks
-from Alexis.Spider import Spider
-from Alexis.JuiceShopCouponExploit import JuiceShopCouponExploit
+from Attacks.Alexis.JuiceShopVulnerabilities import JuiceShopVulnerabilities 
+from Attacks.Alexis.XSSAttacks import XSSAttacks
+from Attacks.Alexis.ForgedJWT import ForgedJWT
+from Attacks.Alexis.XXE_Attacks import XXEAttacks
+from Attacks.Alexis.Spider import Spider
+from Attacks.Alexis.JuiceShopCouponExploit import JuiceShopCouponExploit
 import logging
 
 class AutoPentestGUI:
