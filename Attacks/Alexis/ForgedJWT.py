@@ -6,7 +6,7 @@ import requests
 import urllib3
 urllib3.disable_warnings()
 
-class JWTRSAAttack:
+class ForgedJWT:
     def __init__(self):
         self.base_url = "http://45.76.47.218:3000"
         self.session = requests.Session()
@@ -106,4 +106,4 @@ UwIDAQAB
             print("\n[-] Attack failed")
 
 if __name__ == "__main__":
-    JWTRSAAttack().run_attack()
+    ForgedJWT().run_attack()
