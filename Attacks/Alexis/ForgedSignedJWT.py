@@ -62,7 +62,7 @@ def forge_signed_jwt(original_token: str) -> str:
         print(f"[!] Error forging signed token: {e}")
         return original_token
 
-class InterceptJWT:
+class ForgedSignedJWT:
     def request(self, flow: http.HTTPFlow):
         if JUICE_URL_SNIPPET not in flow.request.pretty_url:
             return
@@ -95,7 +95,7 @@ class InterceptJWT:
 async def run_proxy():
     opts = options.Options(listen_host=LISTEN_HOST, listen_port=LISTEN_PORT)
     m = DumpMaster(opts)
-    m.addons.add(InterceptJWT())
+    m.addons.add(ForgedSignedJWT())
     try:
         await m.run()
     except KeyboardInterrupt:

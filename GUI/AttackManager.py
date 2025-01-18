@@ -1,138 +1,75 @@
-# attack_manager.py
-from dataclasses import dataclass
-from typing import Callable, Dict, List
-import logging
-
-@dataclass
-class Attack:
-    name: str
-    function: str  # Changé en str car c'est le nom de la fonction
-    order: int
-    description: str
-    requires: List[str] = None
-    button_style: str = 'default'
-    button_row: int = 0
-    button_column: int = 0
-    status: str = 'pending'
+from typing import Dict, List
+import threading
+import asyncio
+from ForgedCoupon import JuiceShopCouponExploit
+from Attacks.Alexis.ForgedUnsignedJWT import run_proxy as run_unsigned_proxy
+from Attacks.Alexis.ForgedSignedJWT import run_proxy as run_signed_proxy
+from Attacks.Alexis.JuiceShopVulnerabilities import JuiceShopVulnerabilities
+from Attacks.Alexis.RequestsInterceptor import JuiceShopInterceptor
+import subprocess
 
 class AttackManager:
     def __init__(self):
-        logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(message)s')
-        self.logger = logging.getLogger(__name__)
-        self.attacks: Dict[str, Attack] = {}
-        self._register_default_attacks()
+        self._proxy_thread = None
+        self._attacks = {
+            "JuiceShop Coupon": self._run_juice_shop,
+            "Unsigned JWT": self._run_unsigned_jwt,
+            "Signed JWT": self._run_signed_jwt,
+            "Vulnerability Scanner": self._run_vulnerability_scan,
+            "Dynamic API Interceptor": self._run_api_interceptor
+        }
+        self._execution_order = ["JuiceShop Coupon", "Unsigned JWT", "Signed JWT", "Vulnerability Scanner", "Dynamic API Interceptor"]
 
-    def _register_default_attacks(self):
-        self.register_attack(
-            name="SPIDER",
-            function="run_spider",
-            order=1,
-            description="Map application endpoints"
-        )
+    def _run_juice_shop(self, url: str):
+        exploit = JuiceShopCouponExploit(url)
+        exploit.run_exploit()
 
-        self.register_attack(
-            name="JWT",
-            function="run_jwt_attack",
-            order=2,
-            description="Forge admin JWT token",
-            button_row=0,
-            button_column=1
-        )
+    def _run_unsigned_jwt(self, url: str):
+        self._run_proxy(run_unsigned_proxy)
 
-        self.register_attack(
-            name="SQL",
-            function="run_sql_injection",
-            order=3,
-            description="Test SQL injection vulnerabilities",
-            button_row=0,
-            button_column=2
-        )
+    def _run_signed_jwt(self, url: str):
+        self._run_proxy(run_signed_proxy)
 
-        self.register_attack(
-            name="CAPTCHA",
-            function="run_captcha_bypass",
-            order=4,
-            description="Bypass CAPTCHA protection",
-            button_row=1,
-            button_column=0
-        )
+    def _run_proxy(self, proxy_func):
+        def run_proxy_thread():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(proxy_func())
+            except KeyboardInterrupt:
+                print("Proxy stopped")
+            finally:
+                loop.close()
 
-        self.register_attack(
-            name="COUPON",
-            function="run_coupon_exploit",
-            order=5,
-            description="Exploit coupon mechanism",
-            button_row=1,
-            button_column=1
-        )
+        if self._proxy_thread and self._proxy_thread.is_alive():
+            print("Proxy already running")
+            return
 
-        self.register_attack(
-            name="XXE",
-            function="run_xxe_attack",
-            order=6,
-            description="Test XXE vulnerabilities",
-            button_row=1,
-            button_column=2
-        )
+        self._proxy_thread = threading.Thread(target=run_proxy_thread)
+        self._proxy_thread.daemon = True
+        self._proxy_thread.start()
+        print("Proxy started on 127.0.0.1:8080")
 
-        self.register_attack(
-            name="XSS",
-            function="run_xss_attacks",
-            order=7,
-            description="Test XSS vectors",
-            button_row=2,
-            button_column=0
-        )
+    def _run_vulnerability_scan(self, url: str):
+        scanner = JuiceShopVulnerabilities(url)
+        results = scanner.run_all_attacks()
+        for name, result in results.items():
+            print(f"\n{name}: {result['status']}")
+            if result['status'] == 'success':
+                print(f"Details: {result['details']}")
 
-    def register_attack(self, name: str, function: str, order: int, description: str,
-                       requires: List[str] = None, button_style: str = 'default',
-                       button_row: int = 0, button_column: int = 0):
-        self.attacks[name] = Attack(
-            name=name,
-            function=function,
-            order=order,
-            description=description,
-            requires=requires or [],
-            button_style=button_style,
-            button_row=button_row,
-            button_column=button_column
-        )
-        self.logger.debug(f"Registered attack: {name}")
-
-    def update_attack_status(self, name: str, status: str):
-        if name in self.attacks:
-            self.attacks[name].status = status
-            self.logger.info(f"Attack {name} status updated to {status}")
-            return True
-        self.logger.warning(f"Attempted to update status for unknown attack: {name}")
-        return False
-
-    def get_attack_sequence(self) -> List[Attack]:
-        return sorted(self.attacks.values(), key=lambda x: x.order)
-
-    def get_button_config(self) -> List[Dict]:
-        return [
-            {
-                "name": attack.name,
-                "row": attack.button_row,
-                "column": attack.button_column,
-                "style": attack.button_style,
-                "description": attack.description
-            }
-            for attack in self.attacks.values()
-        ]
+    def _run_api_interceptor(self, url: str):
+        subprocess.Popen(["mitmweb", "--mode", "regular", "--listen-port", "8080"])
         
+    @property
+    def attack_names(self) -> List[str]:
+        return self._execution_order
 
-    def can_run_attack(self, attack_name: str, completed_attacks: List[str]) -> bool:
-        attack = self.attacks.get(attack_name)
-        if not attack:
-            self.logger.warning(f"Unknown attack: {attack_name}")
-            return False
+    def execute_attack(self, name: str, url: str) -> None:
+        if name in self._attacks:
+            self._attacks[name](url)
 
-        dependencies_met = all(req in completed_attacks for req in (attack.requires or []))
-        self.logger.debug(f"Checking attack: {attack_name}")
-        self.logger.debug(f"Completed attacks: {completed_attacks}")
-        self.logger.debug(f"Dependencies for {attack_name}: {attack.requires}")
-        if not dependencies_met:
-            self.logger.info(f"Missing dependencies for {attack_name}: {attack.requires}")
-        return dependencies_met or not attack.requires
+    def execute_all(self, url: str) -> None:
+        for name in self._execution_order:
+            print(f"Executing attack: {name}")
+            self.execute_attack(name, url)

