@@ -24,10 +24,10 @@ class AttackManager:
             "Captcha Bypass": Attack("CaptchaBypass", AttackType.DIRECT, self._run_captcha_bypass),
             "API Scanner": Attack("API Scanner", AttackType.DIRECT, self._run_api_scanner),
             "API Tester": Attack("API Tester", AttackType.DIRECT, self._run_api_tester),
+            "DDOS": Attack("DDOS", AttackType.DIRECT, self._run_DDOS),
             "Unsigned JWT": Attack("Unsigned JWT", AttackType.PROXY, self._run_unsigned_jwt),
             "Signed JWT": Attack("Signed JWT", AttackType.PROXY, self._run_signed_jwt),
             "Launch MITM Proxy": Attack("Launch MITM Proxy", AttackType.PROXY, self._run_mitm_proxy),
-            "DDOS": Attack("DDOS", AttackType.DIRECT, self._run_DDOS),
         }
         
     @property
@@ -103,7 +103,7 @@ class AttackManager:
             scanner.set_proxy("http://127.0.0.1:8080")
         scanner.find_js_endpoints(url)
         api_endpoints = scanner.get_api_endpoints()
-        threading.Thread(target=start_ddos, args=(url, api_endpoints, 100, 60, callback)).start() # Run attack in background
+        threading.Thread(target=start_ddos, args=(url, api_endpoints, 100, 30, callback)).start() # Run attack in background
 
     def _run_unsigned_jwt(self, url: str, use_proxy: bool = True, callback: Callable = None):
         if not self._proxy_running:
