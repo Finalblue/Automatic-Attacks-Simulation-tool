@@ -1,4 +1,3 @@
-# AttackManager.py
 from typing import Dict, List, Callable
 import threading
 from Attacks.Alexis.ForgedSignedJWT import signedJWT
@@ -18,7 +17,7 @@ class AttackManager:
         self._proxy_thread = None
         self._stop_event = threading.Event()
         self._attacks = {
-            "JuiceShop Coupon": Attack("JuiceShop Coupon", AttackType.DIRECT, self._run_juice_shop),
+            "JuiceShop Coupon": Attack("JuiceShop Coupon", AttackType.DIRECT, self._run_forged_coupon),
             "Captcha Bypass": Attack("CaptchaBypass", AttackType.DIRECT, self._run_captcha_bypass),
             "API Scanner": Attack("API Scanner", AttackType.DIRECT, self._run_api_scanner),
             "API Tester": Attack("API Tester", AttackType.DIRECT, self._run_api_tester),
@@ -101,11 +100,8 @@ class AttackManager:
             if callback:
                 callback(f"Error in proxy: {e}")
 
-    def _run_juice_shop(self, url: str, use_proxy: bool = False, callback: Callable = None):
-        """
-        Executes the JuiceShop Coupon attack.
-        """
-        exploit = JuiceShopCouponExploit(url)
+    def _run_forged_coupon(self, url: str, use_proxy: bool = False, callback: Callable = None):
+        exploit = JuiceShopCouponExploit(url, callback=callback)
         if callback:
             callback("Running coupon exploit...")
         exploit.run_exploit()
