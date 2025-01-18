@@ -1,193 +1,147 @@
-# gui.py
 import tkinter as tk
-import sys
-import os
-import json
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox
 from AttackManager import AttackManager
-from Attacks.Alexis.JuiceShopVulnerabilities import JuiceShopVulnerabilities 
-from Attacks.Alexis.XSSAttacks import XSSAttacks
-from Attacks.Alexis.ForgedJWT import ForgedJWT
-from Attacks.Alexis.XXE_Attacks import XXEAttacks
-from Attacks.Alexis.Spider import Spider
-from Attacks.Alexis.JuiceShopCouponExploit import JuiceShopCouponExploit
-import logging
 
-class AutoPentestGUI:
-    def __init__(self, root):
-        logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(message)s')
-        self.root = root
-        self.root.title("Automated Pentest Tool")
-        self.logger = logging.getLogger(__name__)
-        self.attack_manager = AttackManager()
-        self.completed_attacks = []
-        self.setup_gui()
+class PentestGUI:
+    def __init__(self, attack_manager: AttackManager):
+        self.attack_manager = attack_manager
+        self.root = tk.Tk()
+        self.root.title("Pentest Tool")
+        self.root.geometry("1000x600")  # Taille ajustée pour inclure les logs
 
-    def setup_gui(self):
-        self.setup_styles()
-        self.create_main_frame()
-        self.create_target_config()
-        self.create_attack_buttons()
-        self.create_progress_bar()
-        self.create_log_area()
+        self._create_main_layout()
+        self._create_url_frame()
+        self._create_attacks_frame()
+        self._create_logs_frame()
 
-    def setup_styles(self):
-        self.style = ttk.Style()
+    def _create_main_layout(self):
+        """Créer le layout principal avec un PanedWindow pour séparer les boutons et les logs."""
+        self.paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.paned_window.pack(fill=tk.BOTH, expand=True)
 
-    def create_main_frame(self):
-        self.main_frame = ttk.Frame(self.root, padding=10)
-        self.main_frame.grid(sticky='nsew')
+        # Frame gauche pour les boutons
+        self.left_frame = ttk.Frame(self.paned_window)
+        self.paned_window.add(self.left_frame, weight=3)
 
-    def create_target_config(self):
-        config_frame = ttk.LabelFrame(self.main_frame, text="Target Configuration")
-        config_frame.grid(row=0, column=0, sticky='ew', padx=5, pady=5)
+        # Frame droite pour les logs
+        self.right_frame = ttk.Frame(self.paned_window)
+        self.paned_window.add(self.right_frame, weight=2)
 
-        self.url_var = tk.StringVar(value="http://45.76.47.218:3000")
-        ttk.Label(config_frame, text="Target URL:").grid(row=0, column=0)
-        ttk.Entry(config_frame, textvariable=self.url_var, width=50).grid(row=0, column=1)
+    def _create_url_frame(self):
+        """Créer la configuration pour entrer une URL cible."""
+        url_frame = ttk.LabelFrame(self.left_frame, text="Target Configuration", padding=10)
+        url_frame.pack(pady=10, padx=10, fill=tk.X)
 
-    def create_attack_buttons(self):
-        attacks_frame = ttk.LabelFrame(self.main_frame, text="Available Attacks")
-        attacks_frame.grid(row=1, column=0, sticky='ew', padx=5, pady=5)
+        ttk.Label(url_frame, text="Target URL:").pack(side=tk.LEFT)
+        self.url_entry = ttk.Entry(url_frame)
+        self.url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
 
-        for btn_config in self.attack_manager.get_button_config():
-            btn = ttk.Button(
-                attacks_frame,
-                text=f"{btn_config['name']}\n{btn_config['description']}",
-                command=lambda n=btn_config["name"]: self.run_single_attack(n)
-            )
-            btn.grid(row=btn_config["row"], column=btn_config["column"], padx=5, pady=5)
+    def _create_attacks_frame(self):
+        """Créer les onglets pour les attaques directes et via proxy."""
+        notebook = ttk.Notebook(self.left_frame)
+        notebook.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
-        ttk.Button(
-            attacks_frame,
-            text="Run All Attacks",
-            command=self.run_all_attacks
-        ).grid(row=99, column=0, columnspan=3, pady=10)
+        # Onglet pour les attaques directes
+        self._create_attack_tab(notebook, "Direct Attacks",
+                                self.attack_manager.direct_attacks,
+                                self._run_direct_attack,
+                                self._run_all_direct_attacks)
 
-    def create_progress_bar(self):
-        self.progress_var = tk.DoubleVar()
-        ttk.Progressbar(
-            self.main_frame,
-            variable=self.progress_var,
-            maximum=100
-        ).grid(row=2, column=0, sticky='ew', padx=5, pady=5)
+        # Onglet pour les attaques via proxy
+        self._create_attack_tab(notebook, "Proxy Attacks",
+                                self.attack_manager.proxy_attacks,
+                                self._run_proxy_attack,
+                                self._run_all_proxy_attacks)
 
-    def create_log_area(self):
-        self.log_text = tk.Text(self.main_frame, height=10, width=70)
-        self.log_text.grid(row=3, column=0, sticky='nsew', padx=5, pady=5)
-        
-        scrollbar = ttk.Scrollbar(self.main_frame, command=self.log_text.yview)
-        scrollbar.grid(row=3, column=1, sticky='ns')
-        self.log_text['yscrollcommand'] = scrollbar.set
+    def _create_attack_tab(self, notebook, title, attacks, single_handler, all_handler):
+        """Créer un onglet d'attaque."""
+        frame = ttk.Frame(notebook, padding=10)
+        notebook.add(frame, text=title)
 
-    def log(self, message):
-        self.log_text.insert('end', f"{message}\n")
-        self.log_text.see('end')
-        self.root.update()
-        self.logger.debug(message)
+        for name in attacks:
+            ttk.Button(
+                frame,
+                text=f"Run {name}",
+                command=lambda n=name: single_handler(n)
+            ).pack(pady=2, fill=tk.X)
 
-    def run_single_attack(self, attack_name):
-        if not self.attack_manager.can_run_attack(attack_name, self.completed_attacks):
-            self.log(f"[!] Cannot run {attack_name} - prerequisites not met")
-            return
+        if title == "Direct Attacks" and all_handler:
+            ttk.Button(
+                frame,
+                text=f"Run All {title}",
+                command=all_handler
+            ).pack(pady=(10, 2), fill=tk.X)
 
-        self.log(f"[+] Starting {attack_name} attack...")
-        attack = self.attack_manager.attacks[attack_name]
+    def _create_logs_frame(self):
+        """Créer le panneau des logs."""
+        logs_frame = ttk.LabelFrame(self.right_frame, text="Logs", padding=10)
+        logs_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        try:
-            result = getattr(self, attack.function)()
-            if result and result.get("status") == "success":
-                self.completed_attacks.append(attack_name)  # Ajoutez l'attaque terminée ici
-                self.log(f"[+] {attack_name} result: success")
-            else:
-                self.log(f"[-] {attack_name} result: failed")
-        except Exception as e:
-            self.log(f"[!] Error in {attack_name}: {str(e)}")
+        self.logs_text = tk.Text(logs_frame, wrap=tk.WORD, state=tk.DISABLED)
+        self.logs_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        scrollbar = ttk.Scrollbar(logs_frame, command=self.logs_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-    def run_all_attacks(self):
-        self.completed_attacks = []
-        self.log("[+] Starting full attack sequence...")
-        
-        results = {}
-        attack_sequence = self.attack_manager.get_attack_sequence()
-        total_attacks = len(attack_sequence)
-        
-        for i, attack in enumerate(attack_sequence):
-            self.progress_var.set((i / total_attacks) * 100)
-            result = self.run_single_attack(attack.name)
-            if result:
-                results[attack.name] = result
-            
-        self.progress_var.set(100)
-        self.log("[+] Attack sequence completed")
-        self.save_results(results)
+        self.logs_text.config(yscrollcommand=scrollbar.set)
 
-    def run_spider(self):
-        spider = Spider(self.url_var.get())
-        results = spider.crawl()
-        return {"status": "success", "endpoints": results}
+    def _log(self, message: str):
+        """Afficher un message dans la zone des logs."""
+        self.logs_text.config(state=tk.NORMAL)
+        self.logs_text.insert(tk.END, message + "\n")
+        self.logs_text.see(tk.END)
+        self.logs_text.config(state=tk.DISABLED)
 
-    def run_jwt_attack(self):
-        jwt = ForgedJWT(self.url_var.get())
-        return jwt.run_attack()
+    def _validate_url(self) -> str:
+        """Valider l'URL entrée."""
+        url = self.url_entry.get().strip()
+        if not url:
+            messagebox.showerror("Error", "Please enter a target URL")
+            return None
+        return url
 
-    def run_sql_injection(self):
-        juice = JuiceShopVulnerabilities(self.url_var.get())
-        return juice.test_sql_injection()
+    def _run_direct_attack(self, name: str) -> None:
+        """Exécuter une attaque directe."""
+        url = self._validate_url()
+        if url:
+            try:
+                self.attack_manager.execute_attack(name, url, use_proxy=False, callback=self._log)
+            except Exception as e:
+                self._log(f"Error: {str(e)}")
+                messagebox.showerror("Error", str(e))
 
-    def run_captcha_bypass(self):
-        juice = JuiceShopVulnerabilities(self.url_var.get())
-        result = juice.test_captcha_bypass()
-        if result.get("status") == "success":
-            self.log("[+] Successfully bypassed CAPTCHA")
-        return result
+    def _run_proxy_attack(self, name: str) -> None:
+        """Exécuter une attaque nécessitant un proxy."""
+        url = self._validate_url()
+        if url:
+            try:
+                self.attack_manager.execute_attack(name, url, use_proxy=True, callback=self._log)
+            except ValueError as e:
+                self._log(f"Error: {str(e)}")
+                messagebox.showerror("Error", "Proxy must be configured manually for this attack")
+            except Exception as e:
+                self._log(f"Error: {str(e)}")
+                messagebox.showerror("Error", str(e))
 
-    def run_coupon_exploit(self):
-        try:
-            exploit = JuiceShopCouponExploit(self.url_var.get())
-            success = exploit.run_exploit()
-            if success:
-                self.log("[+] COUPON result: success")
-                return {"status": "success"}
-            else:
-                self.log("[-] COUPON result: failed")
-                return {"status": "failed"}
-        except Exception as e:
-            self.log(f"[!] COUPON error: {str(e)}")
-            return {"status": "failed", "error": str(e)}
+    def _run_all_direct_attacks(self) -> None:
+        """Exécuter toutes les attaques directes."""
+        url = self._validate_url()
+        if url:
+            for name in self.attack_manager.direct_attacks:
+                self._run_direct_attack(name)
 
+    def _run_all_proxy_attacks(self) -> None:
+        """Exécuter toutes les attaques nécessitant un proxy."""
+        url = self._validate_url()
+        if url:
+            for name in self.attack_manager.proxy_attacks:
+                self._run_proxy_attack(name)
 
-    def run_xss_attacks(self):
-        xss = XSSAttacks(self.url_var.get())
-        results = xss.run_all_xss_attacks()
-        return {"status": "success" if any(r["status"] == "success" for r in results.values()) else "failed"}
+    def run(self) -> None:
+        """Lancer l'interface graphique."""
+        self.root.mainloop()
 
-    def run_xxe_attack(self):
-        xxe = XXEAttacks(self.url_var.get())
-        try:
-            results = xxe.run_all_xxe_attacks()
-            return {"status": "success" if any(r["status"] == "success" for r in results.values()) else "failed"}
-        except Exception as e:
-            self.log(f"[!] XXE attack error: {str(e)}")
-            return {"status": "failed", "error": str(e)}
-
-    def save_results(self, results):
-        try:
-            file_path = filedialog.asksaveasfilename(
-                title="Save Attack Results",
-                defaultextension=".json",
-                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
-            )
-            if file_path:
-                with open(file_path, 'w') as f:
-                    json.dump(results, f, indent=4)
-                self.log(f"[+] Results saved to {file_path}")
-        except Exception as e:
-            self.log(f"[!] Error saving results: {str(e)}")
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = AutoPentestGUI(root)
-    root.mainloop()
+    gui = PentestGUI(AttackManager())
+    gui.run()
