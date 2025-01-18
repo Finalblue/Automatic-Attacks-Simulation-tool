@@ -33,10 +33,9 @@ class APIScanner:
             for js_file in js_files:
                 full_url = urljoin(url, js_file)
                 try:
-                    # Get JS file content
                     js_content = self.session.get(full_url, timeout=5).text
                     # Search for /rest API endpoints
-                    found_endpoints = re.findall(r'/rest/[a-zA-Z0-9/._-]+', js_content)
+                    found_endpoints = re.findall(r'["\'](/[a-zA-Z][^"\']*)["\']', js_content)
                     endpoints.update(found_endpoints)  # Add enpoints to the list
                 except Exception as e:
                     print(f"Error while accessing {full_url}: {str(e)}")
@@ -44,27 +43,12 @@ class APIScanner:
 
             self.api_endpoints = list(endpoints)
             print(f"API endpoints found: {len(endpoints)}")
-
             for endpoint in self.api_endpoints:
                 self.callback(f"Endpoint found: {endpoint}")
+
 
         except Exception as e:
             print(f"Error while scraping the URL: {e}")
 
     def get_api_endpoints(self):
         return self.api_endpoints
-
-# Exemple
-
-if __name__ == "__main__":
-
-    scanner = APIScanner()
-
-    target_url = "http://45.76.47.218:3000"  # Remplacer par l'URL de votre instance OWASP Juice Shop
-
-    scanner.find_js_endpoints(target_url)
-
-    api_endpoints = scanner.get_api_endpoints()
-    for endpoint in api_endpoints:
-        print(endpoint)
-

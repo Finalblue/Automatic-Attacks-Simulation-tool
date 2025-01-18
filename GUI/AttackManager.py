@@ -5,7 +5,7 @@ import asyncio
 import subprocess
 import sys
 import os
-from attack_types import Attack, AttackType
+from GUI.attack_types import Attack, AttackType
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)

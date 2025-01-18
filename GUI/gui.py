@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from AttackManager import AttackManager
+from GUI.AttackManager import AttackManager
 
 class PentestGUI:
     def __init__(self, attack_manager: AttackManager):
@@ -140,8 +140,3 @@ class PentestGUI:
     def run(self) -> None:
         """Lancer l'interface graphique."""
         self.root.mainloop()
-
-
-if __name__ == "__main__":
-    gui = PentestGUI(AttackManager())
-    gui.run()
