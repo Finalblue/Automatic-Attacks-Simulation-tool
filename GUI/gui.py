@@ -7,7 +7,7 @@ class PentestGUI:
         self.attack_manager = attack_manager
         self.root = tk.Tk()
         self.root.title("Pentest Tool")
-        self.root.geometry("800x600")  # Taille ajustée pour inclure les logs
+        self.root.geometry("1000x600")  # Taille ajustée pour inclure les logs
 
         self._create_main_layout()
         self._create_url_frame()
