@@ -5,12 +5,12 @@ import webbrowser
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from APIScrapper import APIScanner
+from APIScrapper import APIScrapper
 
 class JuiceShopInterceptor:
     def __init__(self):
-        # Get endpoints dynamically using APIScanner
-        scanner = APIScanner()
+        # Get endpoints dynamically using APIScrapper
+        scanner = APIScrapper()
         scanner.find_js_endpoints("http://45.76.47.218:3000")
         self.endpoints = scanner.get_api_endpoints()
         print(f"[*] Loaded {len(self.endpoints)} endpoints")
