@@ -1,0 +1,5 @@
+mitmproxy==11.0.2
+cryptography==44.0.0
+termcolor==2.5.0
+bs4==0.0.2
+requests==2.32.3
