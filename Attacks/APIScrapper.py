@@ -4,22 +4,21 @@ import os
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-try:
-    os.environ['HTTP_PROXY'] = ''
-    os.environ['HTTPS_PROXY'] = ''
-    os.environ['http_proxy'] = ''
-    os.environ['https_proxy'] = ''
-except Exception as e:
-    print(f"Warning: Could not set proxy environment variables: {e}")
-
 class APIScanner:
         
-    def __init__(self):
+    def __init__(self, callback=None):
+        self.callback = callback or print
         self.api_endpoints = []  # Liste pour stocker les endpoints d'API trouvés
         self.session = requests.Session()
         self.session.trust_env = False  # Ignore environment proxies
         self.session.proxies = {'http': None, 'https': None}
     
+    def set_proxy(self, proxy_url):
+        self.session.proxies = {
+            'http': proxy_url,
+            'https': proxy_url
+        }
+
     def find_js_endpoints(self, url):
         print("Scraping url ...")
         try:
@@ -48,6 +47,9 @@ class APIScanner:
             
             self.api_endpoints = list(endpoints)
             print(f"API points : {len(endpoints)}")
+
+            for endpoint in self.api_endpoints:
+                self.callback(f"Endpoint found: {endpoint}")
 
         except Exception as e:
             # Gestion des erreurs

