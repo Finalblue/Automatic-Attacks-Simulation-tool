@@ -6,16 +6,13 @@ import subprocess
 import sys
 import os
 from GUI.attack_types import Attack, AttackType
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-
 from Attacks.Alexis.ForgedCoupon import JuiceShopCouponExploit
 from Attacks.Alexis.ForgedUnsignedJWT import run_proxy as run_unsigned_proxy
 from Attacks.Alexis.ForgedSignedJWT import run_proxy as run_signed_proxy
 from Attacks.Alexis.CaptchaBypass import CaptchaBypass
-from Attacks.APIScrapper import APIScanner
+from Attacks.APIScrapper import APIScrapper
+from Attacks.APITest import APITester
+from Attacks.PwnedChecker import PwnedChecker
 
 class AttackManager:
     def __init__(self):
@@ -25,6 +22,7 @@ class AttackManager:
             "JuiceShop Coupon": Attack("JuiceShop Coupon", AttackType.DIRECT, self._run_juice_shop),
             "Captcha Bypass": Attack("CaptchaBypass", AttackType.DIRECT, self._run_captcha_bypass),
             "API Scanner": Attack("API Scanner", AttackType.DIRECT, self._run_api_scanner),
+            "API Tester": Attack("API Tester", AttackType.DIRECT, self._run_api_tester),
             "Unsigned JWT": Attack("Unsigned JWT", AttackType.PROXY, self._run_unsigned_jwt),
             "Signed JWT": Attack("Signed JWT", AttackType.PROXY, self._run_signed_jwt),
             "Launch MITM Proxy": Attack("Launch MITM Proxy", AttackType.PROXY, self._run_mitm_proxy)
@@ -73,10 +71,30 @@ class AttackManager:
                     callback(f"Details: {result['details']}")
 
     def _run_api_scanner(self, url: str, use_proxy: bool = False, callback: Callable = None):
-        scanner = APIScanner(callback)
+        scanner = APIScrapper(callback)
         if use_proxy:
             scanner.set_proxy("http://127.0.0.1:8080")
         scanner.find_js_endpoints(url)
+    
+    def _run_api_tester(self, url: str, use_proxy: bool = False, callback: Callable = None):
+        scanner = APIScrapper(callback)
+        if use_proxy:
+            scanner.set_proxy("http://127.0.0.1:8080")
+        scanner.find_js_endpoints(url)
+        api_endpoints = scanner.get_api_endpoints()
+        tester = APITester(callback)
+        # Test all found API endpoints
+        for endpoint in api_endpoints:
+            tester.test_endpoint(url + endpoint)
+        credentials = tester.get_credentials()
+        callback("Exposed credentials found:")
+        for email, password in credentials.items():
+            callback(f"  Email: {email}, Password: {password}")
+        checker  = PwnedChecker(callback)
+        for email, password in credentials.items():
+            checker.check_email(email)
+            checker.check_password(password)
+
 
     def _run_unsigned_jwt(self, url: str, use_proxy: bool = True, callback: Callable = None):
         if not self._proxy_running:

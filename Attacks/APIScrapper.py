@@ -4,7 +4,7 @@ import os
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 
-class APIScanner:
+class APIScrapper:
         
     def __init__(self, callback=None):
         self.callback = callback or print

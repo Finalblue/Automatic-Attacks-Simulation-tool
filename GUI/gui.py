@@ -28,13 +28,12 @@ class PentestGUI:
         self.paned_window.add(self.right_frame, weight=2)
 
     def _create_url_frame(self):
-        """Créer la configuration pour entrer une URL cible."""
         url_frame = ttk.LabelFrame(self.left_frame, text="Target Configuration", padding=10)
         url_frame.pack(pady=10, padx=10, fill=tk.X)
-
         ttk.Label(url_frame, text="Target URL:").pack(side=tk.LEFT)
         self.url_entry = ttk.Entry(url_frame)
         self.url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
+        self.url_entry.insert(tk.END, "http://45.76.47.218:3000")
 
     def _create_attacks_frame(self):
         """Créer les onglets pour les attaques directes et via proxy."""
