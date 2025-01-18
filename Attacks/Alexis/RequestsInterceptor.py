@@ -26,7 +26,7 @@ class JuiceShopInterceptor:
             else:
                 print(f"\n[!] Unknown endpoint: {current_path}")
 
-def main():
+def requestIntercept():
     print("[*] Starting interceptor with dynamic API scanning...")
     cmd = ["mitmweb", "--mode", "regular", "--listen-port", "8080"]
     process = subprocess.Popen(cmd)
@@ -36,5 +36,15 @@ def main():
     except KeyboardInterrupt:
         process.terminate()
 
-if __name__ == "__main__":
-    main()
+# def main():
+#     print("[*] Starting interceptor with dynamic API scanning...")
+#     cmd = ["mitmweb", "--mode", "regular", "--listen-port", "8080"]
+#     process = subprocess.Popen(cmd)
+    
+#     try:
+#         process.wait()
+#     except KeyboardInterrupt:
+#         process.terminate()
+
+# if __name__ == "__main__":
+#     main()

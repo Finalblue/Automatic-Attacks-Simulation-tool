@@ -103,8 +103,11 @@ async def run_proxy():
     finally:
         m.shutdown()
 
-def main():
+def signedJWT():
     asyncio.run(run_proxy())
 
-if __name__ == "__main__":
-    main()
+# def main():
+#     asyncio.run(run_proxy())
+
+# if __name__ == "__main__":
+#     main()
