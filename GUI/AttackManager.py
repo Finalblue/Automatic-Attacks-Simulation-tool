@@ -10,6 +10,8 @@ from Attacks.APITest import APITester
 from Attacks.PwnedChecker import PwnedChecker
 from Attacks.ddos import start_ddos
 from Attacks.Alexis.RequestsInterceptor import requestIntercept
+from Attacks.Maxence.UserCredentials import UserCredentials
+from Attacks.Maxence.TFA import TFA
 
 class AttackManager:
     def __init__(self):
@@ -25,6 +27,8 @@ class AttackManager:
             "Unsigned JWT": Attack("Unsigned JWT", AttackType.PROXY, self._run_unsigned_jwt),
             "Signed JWT": Attack("Signed JWT", AttackType.PROXY, self._run_signed_jwt),
             "Intercept Requests": Attack("Intercept Requests", AttackType.PROXY, self._run_request_intercept),
+            "User Credentials": Attack("User Credentials", AttackType.DIRECT, self._run_user_credentials),
+            "Two Factor Authentificator": Attack("Two Factor Authentificator", AttackType.DIRECT, self._run_two_factor_authentificator),
         }
 
     @property
@@ -179,3 +183,21 @@ class AttackManager:
         if callback:
             callback("Starting request interception...")
         requestIntercept()
+
+    def _run_user_credentials(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts request interception.
+        """
+        if callback:
+            callback("Starting User Credentials...")
+        text = UserCredentials.db_drop(self=UserCredentials(url))
+        callback(text.replace("},{","},\n{"))
+
+    def _run_two_factor_authentificator(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts request interception.
+        """
+        if callback:
+            callback("Starting Two Factor Authentificator...")
+        output, text = TFA.login_as_wurstbrot(self=TFA(url))
+        callback(text)
