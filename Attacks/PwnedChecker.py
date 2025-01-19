@@ -12,10 +12,7 @@ class PwnedChecker:
         }
         self.callback = callback or print
 
-    """
-    Unfortunatly, i need an premium API key to check for email breaches.
-    So all call will retrun a 401 unauthorized error.
-    """
+    
     def check_email(self, email):
         url = f"{self.api_url}/breachedaccount/{email}"
         try:
