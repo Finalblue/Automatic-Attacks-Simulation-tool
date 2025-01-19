@@ -13,6 +13,8 @@ from Attacks.PwnedChecker import PwnedChecker
 from Attacks.Alexis.RequestsInterceptor import requestIntercept
 from Attacks.Maxence.UserCredentials import UserCredentials
 from Attacks.Maxence.TFA import TFA
+from Attacks.sql_injection import simulate_sql_injection
+from Attacks.XXE import exploit_xxe
 
 class AttackManager:
     def __init__(self):
@@ -31,6 +33,8 @@ class AttackManager:
             "Intercept Requests": Attack("Intercept Requests", AttackType.PROXY, self._run_request_intercept),
             "User Credentials": Attack("User Credentials", AttackType.DIRECT, self._run_user_credentials),
             "Two Factor Authentificator": Attack("Two Factor Authentificator", AttackType.DIRECT, self._run_two_factor_authentificator),
+            "SQL Injection": Attack("SQL Injection", AttackType.DIRECT, self._run_sql_injection),
+            "XXE": Attack("XXE", AttackType.DIRECT, self._run_xxe_data),
         }
 
     @property
@@ -208,3 +212,19 @@ class AttackManager:
             callback("Starting Two Factor Authentificator...")
         output, text = TFA.login_as_wurstbrot(self=TFA(url))
         callback(text)
+
+    def _run_sql_injection(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts sql injection.
+        """
+        if callback:
+            callback("Starting sql injection...")
+        simulate_sql_injection
+
+    def _run_xxe_data(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts XXE Data Access.
+        """
+        if callback:
+            callback("Starting XXE Data Access...")
+        exploit_xxe
