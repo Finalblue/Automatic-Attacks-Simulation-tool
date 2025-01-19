@@ -15,6 +15,7 @@ from Attacks.Maxence.UserCredentials import UserCredentials
 from Attacks.Maxence.TFA import TFA
 from Attacks.sql_injection import simulate_sql_injection
 from Attacks.XXE import exploit_xxe
+from Attacks.reflected_xss import simulate_reflected_xss
 
 class AttackManager:
     def __init__(self):
@@ -35,6 +36,7 @@ class AttackManager:
             "Two Factor Authentificator": Attack("Two Factor Authentificator", AttackType.DIRECT, self._run_two_factor_authentificator),
             "SQL Injection": Attack("SQL Injection", AttackType.DIRECT, self._run_sql_injection),
             "XXE": Attack("XXE", AttackType.DIRECT, self._run_xxe_data),
+            XSS: Attack("XSS", AttackType.DIRECT, self. _run_xss),
         }
 
     @property
@@ -228,3 +230,11 @@ class AttackManager:
         if callback:
             callback("Starting XXE Data Access...")
         exploit_xxe
+
+    def _run_xss(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Reflected XSS.
+        """
+        if callback:
+            callback("Starting Reflected XSS...")
+        simulate_reflected_xss
