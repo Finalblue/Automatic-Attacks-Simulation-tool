@@ -1,4 +1,5 @@
 cryptography==44.0.0
+pyotp==2.9.0
 requests==2.32.3
 bs4==0.0.2
 mitmproxy==11.0.2
