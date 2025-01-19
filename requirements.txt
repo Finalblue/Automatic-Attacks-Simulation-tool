@@ -1,4 +1,4 @@
 cryptography==44.0.0
-bs4==0.0.2
 requests==2.32.3
+bs4==0.0.2
 mitmproxy==11.0.2
