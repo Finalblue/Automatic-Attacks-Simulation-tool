@@ -36,7 +36,7 @@ class AttackManager:
             "Two Factor Authentificator": Attack("Two Factor Authentificator", AttackType.DIRECT, self._run_two_factor_authentificator),
             "SQL Injection": Attack("SQL Injection", AttackType.DIRECT, self._run_sql_injection),
             "XXE": Attack("XXE", AttackType.DIRECT, self._run_xxe_data),
-            XSS: Attack("XSS", AttackType.DIRECT, self. _run_xss),
+            "XSS": Attack("XSS", AttackType.DIRECT, self. _run_xss),
         }
 
     @property
@@ -221,7 +221,8 @@ class AttackManager:
         """
         if callback:
             callback("Starting sql injection...")
-        simulate_sql_injection
+        username_input = "mc.safesearch@juice-sh.op"
+        simulate_sql_injection(url, username_input)
 
     def _run_xxe_data(self, url: str, use_proxy: bool = True, callback: Callable = None):
         """
@@ -229,7 +230,7 @@ class AttackManager:
         """
         if callback:
             callback("Starting XXE Data Access...")
-        exploit_xxe
+        exploit_xxe(url)
 
     def _run_xss(self, url: str, use_proxy: bool = True, callback: Callable = None):
         """
@@ -237,4 +238,4 @@ class AttackManager:
         """
         if callback:
             callback("Starting Reflected XSS...")
-        simulate_reflected_xss
+        simulate_reflected_xss(url)
