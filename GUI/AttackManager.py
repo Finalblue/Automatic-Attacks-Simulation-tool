@@ -12,6 +12,9 @@ from Attacks.CorentinCampano.PwnedChecker import PwnedChecker
 from Attacks.Alexis.RequestsInterceptor import requestIntercept
 from Attacks.Maxence.UserCredentials import UserCredentials
 from Attacks.Maxence.TFA import TFA
+from Attacks.sql_injection import simulate_sql_injection
+from Attacks.XXE import exploit_xxe
+from Attacks.reflected_xss import simulate_reflected_xss
 
 class AttackManager:
     def __init__(self):
@@ -29,6 +32,9 @@ class AttackManager:
             "Intercept Requests": Attack("Intercept Requests", AttackType.PROXY, self._run_request_intercept),
             "User Credentials": Attack("User Credentials", AttackType.DIRECT, self._run_user_credentials),
             "Two Factor Authentificator": Attack("Two Factor Authentificator", AttackType.DIRECT, self._run_two_factor_authentificator),
+            "SQL Injection": Attack("SQL Injection", AttackType.DIRECT, self._run_sql_injection),
+            "XXE": Attack("XXE", AttackType.DIRECT, self._run_xxe_data),
+            "XSS": Attack("XSS", AttackType.DIRECT, self. _run_xss),
         }
 
     @property
@@ -201,3 +207,30 @@ class AttackManager:
             callback("Starting Two Factor Authentificator...")
         output, text = TFA.login_as_wurstbrot(self=TFA(url))
         callback(text)
+
+    def _run_sql_injection(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts sql injection.
+        """
+        if callback:
+            callback("Starting sql injection...")
+        username_input = "mc.safesearch@juice-sh.op"
+        simulate_sql_injection(url, username_input, callback)
+
+    def _run_xxe_data(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts XXE Data Access.
+        """
+        if callback:
+            callback("Starting XXE Data Access...")
+        payload_file = "Attacks/XXE_payload.xml"
+        exploit_xxe(url, payload_file, callback)
+
+    def _run_xss(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Reflected XSS.
+        """
+        if callback:
+            callback("Starting Reflected XSS...")
+        malicious_script = "<iframe src='javascript:alert(`XSS6`)'></iframe>"
+        simulate_reflected_xss(url, malicious_script, callback)
