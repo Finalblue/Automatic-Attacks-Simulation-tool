@@ -1,7 +1,8 @@
 import requests
 import time
 
-# Z85 Algorithm used to encrypt the coupon code, found by analyzing exposed dependencies in Juice shop
+# Z85 Algorithm used to encrypt the coupon code, 
+# found by analyzing exposed dependencies in Juice shop {dependencies.json}
 
 Z85_CHARS = (
     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"
