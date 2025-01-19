@@ -46,10 +46,10 @@ def generate_requirements(directory="."):
     imported_libraries = find_imports(directory)
     installed_packages = get_installed_packages()
 
-    # Filter libraries that are actually installed (ignore standard modules)
+   
     required_packages = {lib: installed_packages[lib] for lib in imported_libraries if lib in installed_packages}
 
-    # Write to requirements.txt
+   
     with open("requirements.txt", "w") as f:
         for lib, version in required_packages.items():
             f.write(f"{lib}=={version}\n")
