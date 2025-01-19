@@ -9,4 +9,3 @@ class ExposeScoreBoard:
         # Exemple : données simulées
         data = {"challenges": [{"id": 1, "name": "Challenge 1", "solved": False}]}
         print(f"[+] Extracted Data: {data}")
-

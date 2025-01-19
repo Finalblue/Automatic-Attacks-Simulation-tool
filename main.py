@@ -1,7 +1,7 @@
 from tkinter import Tk
 from GUI.gui import show_home_menu
 from Utils.AttackManager import AttackManager
-
+from ATTACKS.Attacks.AdminSectionAccess import AdminSectionAccess
 def main():
     root = Tk()
     root.title("Simulateur d'attaques")
