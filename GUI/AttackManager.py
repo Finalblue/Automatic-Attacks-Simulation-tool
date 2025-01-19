@@ -9,7 +9,7 @@ from Attacks.Alexis.CaptchaBypass import CaptchaBypass
 from Attacks.APIScrapper import APIScrapper
 from Attacks.APITest import APITester
 from Attacks.PwnedChecker import PwnedChecker
-from Attacks.Alexis.URLCrawler import URLCrawler, urlCrawling
+# from Attacks.Alexis.URLCrawler import URLCrawler, urlCrawling
 from Attacks.Alexis.RequestsInterceptor import requestIntercept
 from Attacks.Maxence.UserCredentials import UserCredentials
 from Attacks.Maxence.TFA import TFA
