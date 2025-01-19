@@ -1,6 +1,6 @@
 import requests
 import re
-from Attacks.APIScrapper import APIScrapper
+from Attacks.CorentinCampano.APIScrapper import APIScrapper
 
 class APITester:
     def __init__(self, callback = None):

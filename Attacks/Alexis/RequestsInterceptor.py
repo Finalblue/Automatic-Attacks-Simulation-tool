@@ -5,7 +5,7 @@ import webbrowser
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from APIScrapper import APIScrapper
+from CorentinCampano.APIScrapper import APIScrapper
 
 class JuiceShopInterceptor:
     def __init__(self):

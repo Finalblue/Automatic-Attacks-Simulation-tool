@@ -2,13 +2,13 @@ from typing import Dict, List, Callable
 import threading
 from Attacks.Alexis.ForgedSignedJWT import signedJWT
 from Attacks.Alexis.ForgedUnsignedJWT import unsignedJWT
-from Attacks.ddos import start_ddos
+from Attacks.CorentinCampano.ddos import start_ddos
 from GUI.attack_types import Attack, AttackType
 from Attacks.Alexis.ForgedCoupon import JuiceShopCouponExploit
 from Attacks.Alexis.CaptchaBypass import CaptchaBypass
-from Attacks.APIScrapper import APIScrapper
-from Attacks.APITest import APITester
-from Attacks.PwnedChecker import PwnedChecker
+from Attacks.CorentinCampano.APIScrapper import APIScrapper
+from Attacks.CorentinCampano.APITest import APITester
+from Attacks.CorentinCampano.PwnedChecker import PwnedChecker
 # from Attacks.Alexis.URLCrawler import URLCrawler, urlCrawling
 from Attacks.Alexis.RequestsInterceptor import requestIntercept
 from Attacks.Maxence.UserCredentials import UserCredentials
