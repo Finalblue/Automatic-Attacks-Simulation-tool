@@ -36,15 +36,15 @@ def requestIntercept():
     except KeyboardInterrupt:
         process.terminate()
 
-# def main():
-#     print("[*] Starting interceptor with dynamic API scanning...")
-#     cmd = ["mitmweb", "--mode", "regular", "--listen-port", "8080"]
-#     process = subprocess.Popen(cmd)
+def main():
+    print("[*] Starting interceptor with dynamic API scanning...")
+    cmd = ["mitmweb", "--mode", "regular", "--listen-port", "8080"]
+    process = subprocess.Popen(cmd)
     
-#     try:
-#         process.wait()
-#     except KeyboardInterrupt:
-#         process.terminate()
+    try:
+        process.wait()
+    except KeyboardInterrupt:
+        process.terminate()
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
