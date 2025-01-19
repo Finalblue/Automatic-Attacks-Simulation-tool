@@ -21,6 +21,7 @@ class UserCredentials:
                 return response.text
             else:
                 print(f"Fail with http code {response.status_code}.")
+                return f"Fail with http code {response.status_code}."
         except Exception as e:
             print(f"An error as occured : {e}")
 
