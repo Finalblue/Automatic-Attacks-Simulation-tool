@@ -6,7 +6,7 @@ import re
 import subprocess
 import sys
 
-## Helped by chat gpt and internet sources for the code for automatically detecting and installing the required libraries
+
 
 def find_imports(directory="."):
     """
