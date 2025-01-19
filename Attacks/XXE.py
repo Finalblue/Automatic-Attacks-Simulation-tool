@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import requests
 
 def exploit_xxe(url, file_path):
