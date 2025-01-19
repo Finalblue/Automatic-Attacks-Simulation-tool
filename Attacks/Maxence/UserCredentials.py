@@ -23,11 +23,10 @@ class UserCredentials:
             
             # Affichage de la réponse
             if response.status_code == 200:
-                print("Requête réussie ! Voici la réponse :")
-                print(response.text)
+                print("Requête réussie !")
+                return response.text
             else:
                 print(f"Requête échouée avec le code HTTP {response.status_code}.")
-                print(response.text)
         except Exception as e:
             print(f"Une erreur est survenue : {e}")
 
