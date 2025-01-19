@@ -4,9 +4,9 @@ from ATTACKS.Attacks.AdminSectionAccess import AdminSectionAccess
 from ATTACKS.Attacks.ExposeScoreBoard import ExposeScoreBoard
 from ATTACKS.Attacks.ForgedFeedback import ForgedFeedback
 from ATTACKS.Attacks.RetrieveOrders import RetrieveOrders
-from Utils.utils import validate_url  # Si vous avez une fonction pour valider l'URL
+from Utils.utils import validate_url  # Validation d'URL
 
-# Fenêtre pour "Admin Section Access"
+# Fenêtre pour Admin Section Access
 def open_admin_section_window(root):
     admin_window = tk.Toplevel(root)
     admin_window.title("Admin Section Access")
@@ -30,7 +30,7 @@ def open_admin_section_window(root):
     start_button = tk.Button(admin_window, text="Launch Attack", command=start_admin_access, bg="red", fg="white")
     start_button.grid(row=2, columnspan=2, pady=10)
 
-# Fenêtre pour "Expose Score Board"
+# Fenêtre pour Expose Score Board
 def open_expose_score_board_window(root):
     expose_window = tk.Toplevel(root)
     expose_window.title("Expose Score Board")
@@ -52,7 +52,7 @@ def open_expose_score_board_window(root):
     start_button = tk.Button(expose_window, text="Launch Attack", command=start_expose_score_board, bg="red", fg="white")
     start_button.grid(row=2, columnspan=2, pady=10)
 
-# Fenêtre pour "Forged Feedback"
+# Fenêtre pour Forged Feedback
 def open_forged_feedback_window(root):
     feedback_window = tk.Toplevel(root)
     feedback_window.title("Forged Feedback")
@@ -74,7 +74,7 @@ def open_forged_feedback_window(root):
     start_button = tk.Button(feedback_window, text="Launch Attack", command=start_forged_feedback, bg="red", fg="white")
     start_button.grid(row=2, columnspan=2, pady=10)
 
-# Fenêtre pour "Retrieve Orders"
+# Fenêtre pour Retrieve Orders
 def open_retrieve_orders_window(root):
     orders_window = tk.Toplevel(root)
     orders_window.title("Retrieve Orders")
@@ -110,4 +110,5 @@ def show_home_menu(root):
     tk.Button(main_frame, text="Expose Score Board", command=lambda: open_expose_score_board_window(root), width=20, bg="blue", fg="white").pack(pady=5)
     tk.Button(main_frame, text="Forged Feedback", command=lambda: open_forged_feedback_window(root), width=20, bg="blue", fg="white").pack(pady=5)
     tk.Button(main_frame, text="Retrieve Orders", command=lambda: open_retrieve_orders_window(root), width=20, bg="blue", fg="white").pack(pady=5)
+
     tk.Button(main_frame, text="Quit", command=root.quit, width=20, bg="red", fg="white").pack(pady=10)

