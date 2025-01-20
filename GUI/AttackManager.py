@@ -15,6 +15,9 @@ from Attacks.Maxence.TFA import TFA
 from Attacks.sql_injection import simulate_sql_injection
 from Attacks.XXE import exploit_xxe
 from Attacks.reflected_xss import simulate_reflected_xss
+from Attacks.AdminRegistration import AdminRegistration
+from Attacks.WeirdCrypto import WeirdCrypto
+from Attacks.EmptyUserRegistration import EmptyUserRegistration
 
 class AttackManager:
     def __init__(self):
@@ -35,6 +38,9 @@ class AttackManager:
             "SQL Injection": Attack("SQL Injection", AttackType.DIRECT, self._run_sql_injection),
             "XXE": Attack("XXE", AttackType.DIRECT, self._run_xxe_data),
             "XSS": Attack("XSS", AttackType.DIRECT, self. _run_xss),
+            "Admin Registration": Attack("Admin Registration", AttackType.DIRECT, self._run_admin_registration),
+            "Weird Crypto": Attack("Weird Crypto", AttackType.DIRECT, self._run_weird_crypto),
+            "Empty User Registration": Attack("Empty User Registration", AttackType.DIRECT, self._run_empty_user_registration),
         }
 
     @property
