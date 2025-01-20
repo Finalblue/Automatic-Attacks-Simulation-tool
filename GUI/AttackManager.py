@@ -240,3 +240,35 @@ class AttackManager:
             callback("Starting Reflected XSS...")
         malicious_script = "<iframe src='javascript:alert(`XSS6`)'></iframe>"
         simulate_reflected_xss(url, malicious_script, callback)
+
+    def _run_admin_registration(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Admin Registration.
+        """
+        if callback:
+            callback("Running Admin Registration...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Admin Registration completed")
+
+
+    def _run_weird_crypto(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Weird Crypto.
+        """
+        if callback:
+            callback("Running Weird Crypto...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Weird Crypto completed")
+
+    def _run_empty_user_registration(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Empty User Registration.
+        """
+        if callback:
+            callback("Running Empty User Registration...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Empty User Registration completed")
+
