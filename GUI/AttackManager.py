@@ -18,6 +18,7 @@ from Attacks.reflected_xss import simulate_reflected_xss
 from Attacks.AdminRegistration import AdminRegistration
 from Attacks.WeirdCrypto import WeirdCrypto
 from Attacks.EmptyUserRegistration import EmptyUserRegistration
+from Attacks.AdminSectionAccess import AdminSectionAccess
 
 class AttackManager:
     def __init__(self):
@@ -41,6 +42,7 @@ class AttackManager:
             "Admin Registration": Attack("Admin Registration", AttackType.DIRECT, self._run_admin_registration),
             "Weird Crypto": Attack("Weird Crypto", AttackType.DIRECT, self._run_weird_crypto),
             "Empty User Registration": Attack("Empty User Registration", AttackType.DIRECT, self._run_empty_user_registration),
+            "Admin Section Access": Attack("Admin Section Access", AttackType.DIRECT, self._run_admin_section_access),
         }
 
     @property
@@ -271,4 +273,14 @@ class AttackManager:
         attack_instance.run_exploit()
         if callback:
             callback("Empty User Registration completed")
+            
+ def _run_admin_section_access(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Admin Section Access.
+        """
+        if callback:
+            callback("Running Admin Section Access...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Admin Section Access completed")
 
