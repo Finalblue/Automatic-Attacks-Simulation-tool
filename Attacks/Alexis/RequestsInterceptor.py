@@ -5,7 +5,7 @@ import webbrowser
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from APIScrapper import APIScrapper
+from CorentinCampano.APIScrapper import APIScrapper
 
 class JuiceShopInterceptor:
     def __init__(self):
@@ -36,15 +36,15 @@ def requestIntercept():
     except KeyboardInterrupt:
         process.terminate()
 
-# def main():
-#     print("[*] Starting interceptor with dynamic API scanning...")
-#     cmd = ["mitmweb", "--mode", "regular", "--listen-port", "8080"]
-#     process = subprocess.Popen(cmd)
+def main():
+    print("[*] Starting interceptor with dynamic API scanning...")
+    cmd = ["mitmweb", "--mode", "regular", "--listen-port", "8080"]
+    process = subprocess.Popen(cmd)
     
-#     try:
-#         process.wait()
-#     except KeyboardInterrupt:
-#         process.terminate()
+    try:
+        process.wait()
+    except KeyboardInterrupt:
+        process.terminate()
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

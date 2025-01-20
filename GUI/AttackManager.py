@@ -1,15 +1,28 @@
-from typing import Dict, List, Callable
 import threading
+from typing import Dict, List, Callable
 from Attacks.Alexis.ForgedSignedJWT import signedJWT
 from Attacks.Alexis.ForgedUnsignedJWT import unsignedJWT
+from Attacks.CorentinCampano.ddos import start_ddos
 from GUI.attack_types import Attack, AttackType
 from Attacks.Alexis.ForgedCoupon import JuiceShopCouponExploit
 from Attacks.Alexis.CaptchaBypass import CaptchaBypass
-from Attacks.APIScrapper import APIScrapper
-from Attacks.APITest import APITester
-from Attacks.PwnedChecker import PwnedChecker
-from Attacks.ddos import start_ddos
+from Attacks.CorentinCampano.APIScrapper import APIScrapper
+from Attacks.CorentinCampano.APITest import APITester
+from Attacks.CorentinCampano.PwnedChecker import PwnedChecker
 from Attacks.Alexis.RequestsInterceptor import requestIntercept
+from Attacks.Maxence.UserCredentials import UserCredentials
+from Attacks.Maxence.TFA import TFA
+from Attacks.sql_injection import simulate_sql_injection
+from Attacks.XXE import exploit_xxe
+from Attacks.reflected_xss import simulate_reflected_xss
+from Attacks.AdminRegistration import AdminRegistration
+from Attacks.WeirdCrypto import WeirdCrypto
+from Attacks.EmptyUserRegistration import EmptyUserRegistration
+from Attacks.AdminSectionAccess import AdminSectionAccess
+from Attacks.ExposeScoreBoard import ExposeScoreBoard
+from Attacks.RetrieveListOrders import RetrieveListOrders
+
+
 
 class AttackManager:
     def __init__(self):
@@ -25,6 +38,17 @@ class AttackManager:
             "Unsigned JWT": Attack("Unsigned JWT", AttackType.PROXY, self._run_unsigned_jwt),
             "Signed JWT": Attack("Signed JWT", AttackType.PROXY, self._run_signed_jwt),
             "Intercept Requests": Attack("Intercept Requests", AttackType.PROXY, self._run_request_intercept),
+            "User Credentials": Attack("User Credentials", AttackType.DIRECT, self._run_user_credentials),
+            "Two Factor Authentificator": Attack("Two Factor Authentificator", AttackType.DIRECT, self._run_two_factor_authentificator),
+            "SQL Injection": Attack("SQL Injection", AttackType.DIRECT, self._run_sql_injection),
+            "XXE": Attack("XXE", AttackType.DIRECT, self._run_xxe_data),
+            "XSS": Attack("XSS", AttackType.DIRECT, self. _run_xss),
+            "Admin Registration": Attack("Admin Registration", AttackType.DIRECT, self._run_admin_registration),
+            "Weird Crypto": Attack("Weird Crypto", AttackType.DIRECT, self._run_weird_crypto),
+            "Empty User Registration": Attack("Empty User Registration", AttackType.DIRECT, self._run_empty_user_registration),
+            "Admin Section Access": Attack("Admin Section Access", AttackType.DIRECT, self._run_admin_section_access),
+            "Expose Score Board": Attack("Expose Score Board", AttackType.DIRECT, self._run_expose_score_board),
+            "Retrieve List Orders": Attack("Retrieve List Orders", AttackType.DIRECT, self._run_retrieve_list_orders),
         }
 
     @property
@@ -179,3 +203,113 @@ class AttackManager:
         if callback:
             callback("Starting request interception...")
         requestIntercept()
+
+    def _run_user_credentials(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts request interception.
+        """
+        if callback:
+            callback("Starting User Credentials...")
+        text = UserCredentials.db_drop(self=UserCredentials(url))
+        callback(text.replace("},{","},\n{"))
+
+    def _run_two_factor_authentificator(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts request interception.
+        """
+        if callback:
+            callback("Starting Two Factor Authentificator...")
+        output, text = TFA.login_as_wurstbrot(self=TFA(url))
+        callback(text)
+
+    def _run_sql_injection(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts sql injection.
+        """
+        if callback:
+            callback("Starting sql injection...")
+        username_input = "mc.safesearch@juice-sh.op"
+        simulate_sql_injection(url, username_input, callback)
+
+    def _run_xxe_data(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts XXE Data Access.
+        """
+        if callback:
+            callback("Starting XXE Data Access...")
+        payload_file = "Attacks/XXE_payload.xml"
+        exploit_xxe(url, payload_file, callback)
+
+    def _run_xss(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Reflected XSS.
+        """
+        if callback:
+            callback("Starting Reflected XSS...")
+        malicious_script = "<iframe src='javascript:alert(`XSS6`)'></iframe>"
+        simulate_reflected_xss(url, malicious_script, callback)
+
+    def _run_admin_registration(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Admin Registration.
+        """
+        if callback:
+            callback("Running Admin Registration...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Admin Registration completed")
+
+
+    def _run_weird_crypto(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Weird Crypto.
+        """
+        if callback:
+            callback("Running Weird Crypto...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Weird Crypto completed")
+
+    def _run_empty_user_registration(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Empty User Registration.
+        """
+        if callback:
+            callback("Running Empty User Registration...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Empty User Registration completed")
+            
+    def _run_admin_section_access(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Admin Section Access.
+        """
+        if callback:
+            callback("Running Admin Section Access...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Admin Section Access completed")
+            
+    def _run_expose_score_board(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Expose Score Board.
+        """
+        if callback:
+            callback("Running Expose Score Board...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Expose Score Board completed")
+
+    def _run_retrieve_list_orders(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Retrieve List Orders.
+        """
+        if callback:
+            callback("Running Retrieve List Orders...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Retrieve List Orders completed")
+
+
+
+
