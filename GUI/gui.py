@@ -1,114 +1,154 @@
 import tkinter as tk
-from tkinter import messagebox
-from ATTACKS.Attacks.AdminSectionAccess import AdminSectionAccess
-from ATTACKS.Attacks.ExposeScoreBoard import ExposeScoreBoard
-from ATTACKS.Attacks.ForgedFeedback import ForgedFeedback
-from ATTACKS.Attacks.RetrieveOrders import RetrieveOrders
-from Utils.utils import validate_url  # Validation d'URL
+from tkinter import ttk, messagebox
+from GUI.AttackManager import AttackManager
+from threading import Thread
 
-# Fenêtre pour Admin Section Access
-def open_admin_section_window(root):
-    admin_window = tk.Toplevel(root)
-    admin_window.title("Admin Section Access")
+class PentestGUI:
+    def __init__(self, attack_manager: AttackManager):
+        self.attack_manager = attack_manager
+        self.root = tk.Tk()
+        self.root.title("Pentest Tool")
+        self.root.geometry("1000x600")  # Adjusted size for logs
 
-    # Entrée de l'URL
-    tk.Label(admin_window, text="Target URL:").grid(row=0, column=0, sticky="e")
-    url_entry = tk.Entry(admin_window, width=30)
-    url_entry.grid(row=0, column=1)
+        self._create_main_layout()
+        self._create_url_frame()
+        self._create_attacks_frame()
+        self._create_logs_frame()
 
-    # Bouton pour lancer l'attaque
-    def start_admin_access():
-        url = url_entry.get()
-        if not validate_url(url):
-            messagebox.showerror("Error", "Invalid URL format.")
-            return
+    def _create_main_layout(self):
+        """Create the main layout with a PanedWindow to separate buttons and logs."""
+        self.paned_window = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        self.paned_window.pack(fill=tk.BOTH, expand=True)
 
-        attack = AdminSectionAccess(url)
-        attack.run_exploit()
-        messagebox.showinfo("Finished", "Admin Section Access completed.")
+        # Left frame for buttons
+        self.left_frame = ttk.Frame(self.paned_window)
+        self.paned_window.add(self.left_frame, weight=3)
 
-    start_button = tk.Button(admin_window, text="Launch Attack", command=start_admin_access, bg="red", fg="white")
-    start_button.grid(row=2, columnspan=2, pady=10)
+        # Right frame for logs
+        self.right_frame = ttk.Frame(self.paned_window)
+        self.paned_window.add(self.right_frame, weight=2)
 
-# Fenêtre pour Expose Score Board
-def open_expose_score_board_window(root):
-    expose_window = tk.Toplevel(root)
-    expose_window.title("Expose Score Board")
+    def _create_url_frame(self):
+        url_frame = ttk.LabelFrame(self.left_frame, text="Target Configuration", padding=10)
+        url_frame.pack(pady=10, padx=10, fill=tk.X)
+        ttk.Label(url_frame, text="Target URL:").pack(side=tk.LEFT)
+        self.url_entry = ttk.Entry(url_frame)
+        self.url_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
+        self.url_entry.insert(tk.END, "http://45.76.47.218:3000")
 
-    tk.Label(expose_window, text="Target URL:").grid(row=0, column=0, sticky="e")
-    url_entry = tk.Entry(expose_window, width=30)
-    url_entry.grid(row=0, column=1)
+    def _create_attacks_frame(self):
+        """Create tabs for direct and proxy attacks."""
+        notebook = ttk.Notebook(self.left_frame)
+        notebook.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
-    def start_expose_score_board():
-        url = url_entry.get()
-        if not validate_url(url):
-            messagebox.showerror("Error", "Invalid URL format.")
-            return
+        # Tab for direct attacks
+        self._create_attack_tab(
+            notebook,
+            "Direct Attacks",
+            self.attack_manager.direct_attacks,
+            self._run_direct_attack,
+            self._run_all_direct_attacks
+        )
 
-        attack = ExposeScoreBoard(url)
-        attack.run_exploit()
-        messagebox.showinfo("Finished", "Expose Score Board completed.")
+        # Tab for proxy attacks
+        self._create_attack_tab(
+            notebook,
+            "Proxy Attacks",
+            self.attack_manager.proxy_attacks,
+            self._run_proxy_attack,
+            self._run_all_proxy_attacks
+        )
 
-    start_button = tk.Button(expose_window, text="Launch Attack", command=start_expose_score_board, bg="red", fg="white")
-    start_button.grid(row=2, columnspan=2, pady=10)
+    def _create_attack_tab(self, notebook, title, attacks, single_handler, all_handler):
+        """Create an attack tab."""
+        frame = ttk.Frame(notebook, padding=10)
+        notebook.add(frame, text=title)
 
-# Fenêtre pour Forged Feedback
-def open_forged_feedback_window(root):
-    feedback_window = tk.Toplevel(root)
-    feedback_window.title("Forged Feedback")
+        for name in attacks:
+            ttk.Button(
+                frame,
+                text=f"Run {name}",
+                command=lambda n=name: single_handler(n)
+            ).pack(pady=2, fill=tk.X)
 
-    tk.Label(feedback_window, text="Target URL:").grid(row=0, column=0, sticky="e")
-    url_entry = tk.Entry(feedback_window, width=30)
-    url_entry.grid(row=0, column=1)
+        if title == "Direct Attacks" and all_handler:
+            ttk.Button(
+                frame,
+                text=f"Run All {title}",
+                command=all_handler
+            ).pack(pady=(10, 2), fill=tk.X)
 
-    def start_forged_feedback():
-        url = url_entry.get()
-        if not validate_url(url):
-            messagebox.showerror("Error", "Invalid URL format.")
-            return
+    def _create_logs_frame(self):
+        """Create the logs panel."""
+        logs_frame = ttk.LabelFrame(self.right_frame, text="Logs", padding=10)
+        logs_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        attack = ForgedFeedback(url)
-        attack.run_exploit()
-        messagebox.showinfo("Finished", "Forged Feedback completed.")
+        self.logs_text = tk.Text(logs_frame, wrap=tk.WORD, state=tk.DISABLED)
+        self.logs_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-    start_button = tk.Button(feedback_window, text="Launch Attack", command=start_forged_feedback, bg="red", fg="white")
-    start_button.grid(row=2, columnspan=2, pady=10)
+        scrollbar = ttk.Scrollbar(logs_frame, command=self.logs_text.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-# Fenêtre pour Retrieve Orders
-def open_retrieve_orders_window(root):
-    orders_window = tk.Toplevel(root)
-    orders_window.title("Retrieve Orders")
+        self.logs_text.config(yscrollcommand=scrollbar.set)
 
-    tk.Label(orders_window, text="Target URL:").grid(row=0, column=0, sticky="e")
-    url_entry = tk.Entry(orders_window, width=30)
-    url_entry.grid(row=0, column=1)
+    def _log(self, message: str):
+        """Display a message in the logs area."""
+        try:
+            self.logs_text.config(state=tk.NORMAL)
+            self.logs_text.insert(tk.END, message + "\n")
+            self.logs_text.see(tk.END)
+            self.logs_text.config(state=tk.DISABLED)
+        except Exception as e:
+            print(f"[LOG ERROR] {e}")
 
-    def start_retrieve_orders():
-        url = url_entry.get()
-        if not validate_url(url):
-            messagebox.showerror("Error", "Invalid URL format.")
-            return
+    def _validate_url(self) -> str:
+        """Validate the entered URL."""
+        url = self.url_entry.get().strip()
+        if not url:
+            messagebox.showerror("Error", "Please enter a target URL")
+            return None
+        return url
 
-        attack = RetrieveOrders(url)
-        attack.run_exploit()
-        messagebox.showinfo("Finished", "Retrieve Orders completed.")
+    def _run_direct_attack(self, name: str) -> None:
+        """Run a direct attack in a separate thread."""
+        def attack_thread():
+            url = self._validate_url()
+            if url:
+                try:
+                    self.attack_manager.execute_attack(name, url, use_proxy=False, callback=self._log)
+                except Exception as e:
+                    self._log(f"Error: {str(e)}")
+                    messagebox.showerror("Error", str(e))
 
-    start_button = tk.Button(orders_window, text="Launch Attack", command=start_retrieve_orders, bg="red", fg="white")
-    start_button.grid(row=2, columnspan=2, pady=10)
+        Thread(target=attack_thread).start()
 
-# Page d'accueil
-def show_home_menu(root):
-    main_frame = tk.Frame(root, padx=20, pady=20)
-    main_frame.pack(fill="both", expand=True)
+    def _run_proxy_attack(self, name: str) -> None:
+        """Run a proxy attack in a separate thread."""
+        def attack_thread():
+            url = self._validate_url()
+            if url:
+                try:
+                    self.attack_manager.execute_attack(name, url, use_proxy=True, callback=self._log)
+                except Exception as e:
+                    self._log(f"Error: {str(e)}")
+                    messagebox.showerror("Error", str(e))
 
-    for widget in main_frame.winfo_children():
-        widget.destroy()
+        Thread(target=attack_thread).start()
 
-    tk.Label(main_frame, text="Welcome to Automatic Attacks Simulator!", font=("Arial", 16)).pack(pady=10)
+    def _run_all_direct_attacks(self) -> None:
+        """Run all direct attacks."""
+        url = self._validate_url()
+        if url:
+            for name in self.attack_manager.direct_attacks:
+                self._run_direct_attack(name)
 
-    tk.Button(main_frame, text="Admin Section Access", command=lambda: open_admin_section_window(root), width=20, bg="blue", fg="white").pack(pady=5)
-    tk.Button(main_frame, text="Expose Score Board", command=lambda: open_expose_score_board_window(root), width=20, bg="blue", fg="white").pack(pady=5)
-    tk.Button(main_frame, text="Forged Feedback", command=lambda: open_forged_feedback_window(root), width=20, bg="blue", fg="white").pack(pady=5)
-    tk.Button(main_frame, text="Retrieve Orders", command=lambda: open_retrieve_orders_window(root), width=20, bg="blue", fg="white").pack(pady=5)
+    def _run_all_proxy_attacks(self) -> None:
+        """Run all proxy attacks."""
+        url = self._validate_url()
+        if url:
+            for name in self.attack_manager.proxy_attacks:
+                self._run_proxy_attack(name)
 
-    tk.Button(main_frame, text="Quit", command=root.quit, width=20, bg="red", fg="white").pack(pady=10)
+    def run(self) -> None:
+        """Launch the GUI."""
+        self.root.mainloop()

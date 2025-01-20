@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "Nmap",
+        "Pentest"
+    ],
+    "python.analysis.extraPaths": [
+        "./Attacks",
+        "./Attacks/Alexis"
+    ]
+}
