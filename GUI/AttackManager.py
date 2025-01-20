@@ -19,6 +19,8 @@ from Attacks.AdminRegistration import AdminRegistration
 from Attacks.WeirdCrypto import WeirdCrypto
 from Attacks.EmptyUserRegistration import EmptyUserRegistration
 from Attacks.AdminSectionAccess import AdminSectionAccess
+from Attacks.ExposeScoreBoard import ExposeScoreBoard
+
 
 class AttackManager:
     def __init__(self):
@@ -283,4 +285,16 @@ class AttackManager:
         attack_instance.run_exploit()
         if callback:
             callback("Admin Section Access completed")
+            
+    def _run_expose_score_board(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Expose Score Board.
+        """
+        if callback:
+            callback("Running Expose Score Board...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Expose Score Board completed")
+
+
 
