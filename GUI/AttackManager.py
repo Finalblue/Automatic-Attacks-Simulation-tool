@@ -45,6 +45,7 @@ class AttackManager:
             "Weird Crypto": Attack("Weird Crypto", AttackType.DIRECT, self._run_weird_crypto),
             "Empty User Registration": Attack("Empty User Registration", AttackType.DIRECT, self._run_empty_user_registration),
             "Admin Section Access": Attack("Admin Section Access", AttackType.DIRECT, self._run_admin_section_access),
+            "ExposeScoreBoard": Attack("Expose Score Board", AttackType.DIRECT, self._run_expose_score_board),
         }
 
     @property
