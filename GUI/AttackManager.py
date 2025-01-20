@@ -20,6 +20,8 @@ from Attacks.WeirdCrypto import WeirdCrypto
 from Attacks.EmptyUserRegistration import EmptyUserRegistration
 from Attacks.AdminSectionAccess import AdminSectionAccess
 from Attacks.ExposeScoreBoard import ExposeScoreBoard
+from Attacks.RetrieveListOrders import RetrieveListOrders
+
 
 
 class AttackManager:
@@ -45,7 +47,8 @@ class AttackManager:
             "Weird Crypto": Attack("Weird Crypto", AttackType.DIRECT, self._run_weird_crypto),
             "Empty User Registration": Attack("Empty User Registration", AttackType.DIRECT, self._run_empty_user_registration),
             "Admin Section Access": Attack("Admin Section Access", AttackType.DIRECT, self._run_admin_section_access),
-            "ExposeScoreBoard": Attack("Expose Score Board", AttackType.DIRECT, self._run_expose_score_board),
+            "Expose Score Board": Attack("Expose Score Board", AttackType.DIRECT, self._run_expose_score_board),
+            "Retrieve List Orders": Attack("Retrieve List Orders", AttackType.DIRECT, self._run_retrieve_list_orders),
         }
 
     @property
@@ -296,6 +299,17 @@ class AttackManager:
         attack_instance.run_exploit()
         if callback:
             callback("Expose Score Board completed")
+
+    def _run_retrieve_list_orders(self, url: str, use_proxy: bool = True, callback: Callable = None):
+        """
+        Starts Retrieve List Orders.
+        """
+        if callback:
+            callback("Running Retrieve List Orders...")
+        attack_instance.run_exploit()
+        if callback:
+            callback("Retrieve List Orders completed")
+
 
 
 
