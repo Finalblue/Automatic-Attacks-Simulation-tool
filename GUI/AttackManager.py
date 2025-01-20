@@ -285,30 +285,50 @@ class AttackManager:
         Starts Admin Section Access.
         """
         if callback:
-            callback("Running Admin Section Access...")
-        attack_instance.run_exploit()
-        if callback:
-            callback("Admin Section Access completed")
-            
+           callback("Running Admin Section Access...")
+        try:
+             
+            attack_instance = AdminSectionAccess(url)
+            attack_instance.run_exploit()
+            if callback:
+               callback("Admin Section Access completed")
+        except Exception as e:
+            if callback:
+             callback(f"Error in Admin Section Access: {e}")
+
+
     def _run_expose_score_board(self, url: str, use_proxy: bool = True, callback: Callable = None):
         """
         Starts Expose Score Board.
         """
         if callback:
             callback("Running Expose Score Board...")
-        attack_instance.run_exploit()
-        if callback:
-            callback("Expose Score Board completed")
+        try:
+            
+            attack_instance = ExposeScoreBoard(url)
+            attack_instance.run_exploit()
+            if callback:
+                callback("Expose Score Board completed")
+        except Exception as e:
+            if callback:
+             callback(f"Error in Expose Score Board: {e}")
+
 
     def _run_retrieve_list_orders(self, url: str, use_proxy: bool = True, callback: Callable = None):
         """
-        Starts Retrieve List Orders.
+         Starts Retrieve List Orders.
         """
         if callback:
             callback("Running Retrieve List Orders...")
-        attack_instance.run_exploit()
-        if callback:
-            callback("Retrieve List Orders completed")
+        try:
+             
+             attack_instance = RetrieveListOrders(url)
+             attack_instance.run_exploit()
+             if callback:
+                 callback("Retrieve List Orders completed")
+        except Exception as e:
+            if callback:
+             callback(f"Error in Retrieve List Orders: {e}")
 
 
 
