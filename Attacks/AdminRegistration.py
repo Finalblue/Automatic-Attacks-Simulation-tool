@@ -1,6 +1,6 @@
 import requests
 
-class JuiceShopAdminRegistrationExploit:
+class AdminRegistration:
     def __init__(self, base_url):
         self.base_url = base_url
         self.session = requests.Session()
