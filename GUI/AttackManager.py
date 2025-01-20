@@ -274,7 +274,7 @@ class AttackManager:
         if callback:
             callback("Empty User Registration completed")
             
- def _run_admin_section_access(self, url: str, use_proxy: bool = True, callback: Callable = None):
+    def _run_admin_section_access(self, url: str, use_proxy: bool = True, callback: Callable = None):
         """
         Starts Admin Section Access.
         """
