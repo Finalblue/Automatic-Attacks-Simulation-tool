@@ -6,23 +6,23 @@ class WeirdCrypto:
         self.session = requests.Session()
         self.headers = {"Content-Type": "application/json"}
 
-    def fetch_captcha(self):
+    def fetch_captcha(self, callback):
         endpoint = f"{self.base_url}/rest/captcha"
-        print(f"[CAPTCHA] Fetching a captcha...")
+        callback(f"[CAPTCHA] Fetching a captcha...")
         response = self.session.get(endpoint, headers=self.headers)
 
         if response.status_code == 200:
             captcha_data = response.json()
             captcha_id = captcha_data.get("captchaId")
             captcha_answer = captcha_data.get("answer")  # Récupérer la réponse au CAPTCHA
-            print(f"[CAPTCHA] Captcha fetched successfully. ID: {captcha_id}, Answer: {captcha_answer}")
+            callback(f"[CAPTCHA] Captcha fetched successfully. ID: {captcha_id}, Answer: {captcha_answer}")
             return captcha_id, captcha_answer
         else:
-            print(f"[FAIL] Failed to fetch captcha. Status: {response.status_code}")
-            print(f"Response: {response.text}")
+            callback(f"[FAIL] Failed to fetch captcha. Status: {response.status_code}")
+            callback(f"Response: {response.text}")
             return None, None
 
-    def inform_about_weak_crypto(self, captcha_id, captcha_answer):
+    def inform_about_weak_crypto(self, captcha_id, captcha_answer, callback):
         endpoint = f"{self.base_url}/api/Feedbacks"
         payload = {
             "comment": "The shop uses MD5 for hashing, which is considered insecure. Please update to a modern algorithm like SHA-256.",
@@ -31,29 +31,29 @@ class WeirdCrypto:
             "captcha": captcha_answer  # Inclure la réponse au CAPTCHA
         }
 
-        print(f"[CRYPTO WARNING] Informing the shop about weak crypto usage...")
+        callback(f"[CRYPTO WARNING] Informing the shop about weak crypto usage...")
         response = self.session.post(endpoint, json=payload, headers=self.headers)
 
         if response.status_code == 201:  # Code HTTP 201 signifie "Créé"
-            print("[SUCCESS] Feedback envoyé avec succès concernant l'utilisation d'algorithmes cryptographiques faibles.")
-            print(f"Response: {response.json()}")
+            callback("[SUCCESS] Feedback envoyé avec succès concernant l'utilisation d'algorithmes cryptographiques faibles.")
+            callback(f"Response: {response.json()}")
             return True
         else:
-            print(f"[FAIL] Échec de l'envoi du feedback. Statut: {response.status_code}")
-            print(f"Response: {response.text}")
+            callback(f"[FAIL] Échec de l'envoi du feedback. Statut: {response.status_code}")
+            callback(f"Response: {response.text}")
             return False
 
-    def run_exploit(self):
-        print("[EXPLOIT] Démarrage de l'exploit pour le challenge 'Weird Crypto'...")
-        captcha_id, captcha_answer = self.fetch_captcha()
+    def run_exploit(self, callback):
+        callback("[EXPLOIT] Démarrage de l'exploit pour le challenge 'Weird Crypto'...")
+        captcha_id, captcha_answer = self.fetch_captcha(callback)
         if not captcha_id or not captcha_answer:
-            print("[EXPLOIT] Impossible de récupérer un captcha. Exploit abandonné.")
+            callback("[EXPLOIT] Impossible de récupérer un captcha. Exploit abandonné.")
             return
 
-        success = self.inform_about_weak_crypto(captcha_id, captcha_answer)
+        success = self.inform_about_weak_crypto(captcha_id, captcha_answer, callback)
         if success:
-            print("[EXPLOIT] Exploit terminé avec succès. Flag activé.")
+            callback("[EXPLOIT] Exploit terminé avec succès. Flag activé.")
         else:
-            print("[EXPLOIT] L'exploit a échoué.")
+            callback("[EXPLOIT] L'exploit a échoué.")
 
 

@@ -248,7 +248,7 @@ class AttackManager:
         if callback:
             callback("Running Admin Registration...")
         exploit = AdminRegistration(url)
-        exploit.run_exploit()
+        exploit.run_exploit(callback)
         if callback:
             callback("Admin Registration completed")
 
@@ -260,7 +260,7 @@ class AttackManager:
         if callback:
             callback("Running Weird Crypto...")
         exploit = WeirdCrypto(url)
-        exploit.run_exploit()
+        exploit.run_exploit(callback)
         if callback:
             callback("Weird Crypto completed")
 
@@ -271,7 +271,7 @@ class AttackManager:
         if callback:
             callback("Running Empty User Registration...")
         exploit = EmptyUserRegistration(url)
-        exploit.run_exploit()
+        exploit.run_exploit(callback)
         if callback:
             callback("Empty User Registration completed")
 
