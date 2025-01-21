@@ -18,6 +18,7 @@ from Attacks.reflected_xss import simulate_reflected_xss
 from Attacks.AdminRegistration import AdminRegistration
 from Attacks.WeirdCrypto import WeirdCrypto
 from Attacks.EmptyUserRegistration import EmptyUserRegistration
+from Attacks.Alexis.SSTI import SSTI
 
 class AttackManager:
     def __init__(self):
@@ -41,6 +42,7 @@ class AttackManager:
             "Admin Registration": Attack("Admin Registration", AttackType.DIRECT, self._run_admin_registration),
             "Weird Crypto": Attack("Weird Crypto", AttackType.DIRECT, self._run_weird_crypto),
             "Empty User Registration": Attack("Empty User Registration", AttackType.DIRECT, self._run_empty_user_registration),
+            "SSTI": Attack("SSTI", AttackType.DIRECT, self._run_SSTI),
         }
 
     @property
@@ -272,3 +274,13 @@ class AttackManager:
         if callback:
             callback("Empty User Registration completed")
 
+    def _run_SSTI(self, url: str, use_proxy: bool = False, callback: Callable = None):
+        if callback:
+            callback("Starting SSTI attack...")
+        try:
+            tester = SSTI(),tester.run()
+            if callback:
+                callback("SSTI attack completed.")
+        except Exception as e:
+            if callback:
+                callback(f"Error during SSTI attack: {e}")

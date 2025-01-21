@@ -139,7 +139,7 @@ class SSTITester:
             self.logger.error(f"Critical error during test: {str(e)}")
 
 
-def main():
+def SSTI():
     try:
         logging.basicConfig(level=logging.INFO)
         base_url = "http://45.76.47.218:3000"
@@ -148,7 +148,3 @@ def main():
     except Exception as e:
         logging.error(f"Fatal error: {str(e)}")
         sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
