@@ -21,8 +21,7 @@ from Attacks.EmptyUserRegistration import EmptyUserRegistration
 from Attacks.AdminSectionAccess import AdminSectionAccess
 from Attacks.ExposeScoreBoard import ExposeScoreBoard
 from Attacks.RetrieveListOrders import RetrieveListOrders
-
-
+from Attacks.Alexis.SSTI import SSTI
 
 class AttackManager:
     def __init__(self):
@@ -49,6 +48,7 @@ class AttackManager:
             "Admin Section Access": Attack("Admin Section Access", AttackType.DIRECT, self._run_admin_section_access),
             "Expose Score Board": Attack("Expose Score Board", AttackType.DIRECT, self._run_expose_score_board),
             "Retrieve List Orders": Attack("Retrieve List Orders", AttackType.DIRECT, self._run_retrieve_list_orders),
+            "SSTI": Attack("SSTI", AttackType.DIRECT, self._run_SSTI),
         }
 
     @property
@@ -333,3 +333,13 @@ class AttackManager:
 
 
 
+    def _run_SSTI(self, url: str, use_proxy: bool = False, callback: Callable = None):
+        if callback:
+            callback("Starting SSTI attack...")
+        try:
+            tester = SSTI(),tester.run()
+            if callback:
+                callback("SSTI attack completed.")
+        except Exception as e:
+            if callback:
+                callback(f"Error during SSTI attack: {e}")
