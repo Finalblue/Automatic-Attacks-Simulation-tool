@@ -34,9 +34,4 @@ class AdminRegistration:
             print("[EXPLOIT] Exploit terminé avec succès. Flag activé.")
         else:
             print("[EXPLOIT] L'exploit a échoué.")
-
-
-if __name__ == "__main__":
-    base_url = "http://45.76.47.218:3000"  # URL du site Juice Shop
-    exploit = JuiceShopAdminRegistrationExploit(base_url)
-    exploit.run_exploit()
+    
