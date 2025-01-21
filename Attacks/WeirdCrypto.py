@@ -57,7 +57,3 @@ class WeirdCrypto:
             print("[EXPLOIT] L'exploit a échoué.")
 
 
-if __name__ == "__main__":
-    base_url = "http://45.76.47.218:3000"  # URL du site Juice Shop
-    exploit = JuiceShopWeirdCryptoExploit(base_url)
-    exploit.run_exploit()
