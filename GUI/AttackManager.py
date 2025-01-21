@@ -18,9 +18,9 @@ from Attacks.reflected_xss import simulate_reflected_xss
 from Attacks.AdminRegistration import AdminRegistration
 from Attacks.WeirdCrypto import WeirdCrypto
 from Attacks.EmptyUserRegistration import EmptyUserRegistration
-from Attacks.AdminSectionAccess import AdminSectionAccess
+from Attacks.AdminSectionAcces import AdminSectionAccess
 from Attacks.ExposeScoreBoard import ExposeScoreBoard
-from Attacks.RetrieveListOrders import RetrieveListOrders
+from Attacks.RetrieveListOrders import RetrieveOrders
 from Attacks.Alexis.SSTI import SSTI
 
 class AttackManager:
